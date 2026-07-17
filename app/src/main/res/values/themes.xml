@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme using native Android OS themes -->
+    <style name="Theme.AiLatestFinder" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="android:statusBarColor">@color/black_premium</item>
+        <item name="android:windowBackground">@color/black_premium</item>
+    </style>
+</resources>
