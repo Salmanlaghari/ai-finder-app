@@ -5,10 +5,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.princelaghari.ailatestfinder.data.datasource.MockDataSource
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.domain.repository.AiToolRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,10 +29,10 @@ class FirebaseFirestoreRepositoryImpl @Inject constructor() : AiToolRepository {
         }
 
         if (firestore == null) {
-            // Safe fallback flow yielding high-quality mock data
+            // Safe fallback flow yielding high-quality mock data, offloaded to IO dispatcher
             return flow {
                 emit(MockDataSource.aiTools)
-            }
+            }.flowOn(Dispatchers.IO)
         }
 
         return callbackFlow {
@@ -71,6 +73,6 @@ class FirebaseFirestoreRepositoryImpl @Inject constructor() : AiToolRepository {
             awaitClose {
                 listenerRegistration.remove()
             }
-        }
+        }.flowOn(Dispatchers.IO) // Offload snapshot operations to background IO threads
     }
 }

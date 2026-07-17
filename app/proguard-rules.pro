@@ -20,3 +20,17 @@
 -keepattributes Signature, InnerClasses, EnclosingMethod, AnnotationDefault, *Annotation*
 -dontwarn okio.**
 -dontwarn javax.annotation.**
+
+# Aggressive Optimization and Shrinking Rules
+-repackageclasses ''
+-allowaccessmodification
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+
+# Strip Logging / Debug Output in Production
+-assumenosideeffects class android.util.Log {
+    public static boolean isLoggable(java.lang.String, int);
+    public static int v(...);
+    public static int d(...);
+}
