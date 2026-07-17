@@ -16,6 +16,7 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0.0"
+        multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -23,13 +24,40 @@ android {
         }
     }
 
+    signingConfigs {
+        create("premium") {
+            // Safe automated keystore lookup.
+            // On GitHub Actions we generate "temp-keystore.jks" in the root directory.
+            val keystoreFile = rootProject.file("temp-keystore.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = "password123"
+                keyAlias = "premiumalias"
+                keyPassword = "password123"
+            }
+        }
+    }
+
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+            // If the premium keystore is found, use it to sign debug builds to bypass Play Protect
+            val keystoreFile = rootProject.file("temp-keystore.jks")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("premium")
+            }
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            val keystoreFile = rootProject.file("temp-keystore.jks")
+            if (keystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("premium")
+            }
         }
     }
     compileOptions {
