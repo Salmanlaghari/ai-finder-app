@@ -87,16 +87,16 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
 }
 
 /**
- * Shimmer modifier for premium loading/skeleton states.
+ * Hardware-accelerated shimmer modifier for premium loading/skeleton states.
  */
 fun Modifier.shimmerEffect(): Modifier = composed {
     var size by remember { mutableStateOf(IntSize.Zero) }
     val transition = rememberInfiniteTransition(label = "shimmerTransition")
     val startOffsetX by transition.animateFloat(
-        initialValue = -2f * size.width.toFloat(),
-        targetValue = 2f * size.width.toFloat(),
+        initialValue = -2.5f * size.width.toFloat(),
+        targetValue = 2.5f * size.width.toFloat(),
         animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
+            animation = tween(1000, easing = EaseInOutQuad),
             repeatMode = RepeatMode.Restart
         ),
         label = "shimmerOffset"
@@ -105,9 +105,9 @@ fun Modifier.shimmerEffect(): Modifier = composed {
     background(
         brush = Brush.linearGradient(
             colors = listOf(
-                Color(0xFF141414),
-                Color(0xFF2C2C2C),
-                Color(0xFF141414)
+                Color(0xFF0F0F0F),
+                Color(0xFF262217), // Rich golden-tinted metallic shimmer highlight
+                Color(0xFF0F0F0F)
             ),
             start = Offset(startOffsetX, 0f),
             end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
@@ -434,6 +434,16 @@ fun AiToolCard(
     modifier: Modifier = Modifier
 ) {
     var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // Optimize image loading recompositions by remembering the ImageRequest instance
+    val imageRequest = remember(tool.imageUrl) {
+        ImageRequest.Builder(context)
+            .data(tool.imageUrl)
+            .crossfade(true)
+            .crossfade(300)
+            .build()
+    }
 
     // Subtle premium card design
     Card(
@@ -467,11 +477,7 @@ fun AiToolCard(
             ) {
                 if (!isImageError && tool.imageUrl.isNotEmpty()) {
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
-                            .data(tool.imageUrl)
-                            .crossfade(true)
-                            .crossfade(500)
-                            .build(),
+                        model = imageRequest,
                         contentDescription = "${tool.name} logo",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
@@ -723,6 +729,14 @@ fun AiDetailOverlay(
     val context = LocalContext.current
     var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
 
+    // Optimize image loading recompositions by remembering the ImageRequest instance
+    val imageRequest = remember(tool.imageUrl) {
+        ImageRequest.Builder(context)
+            .data(tool.imageUrl)
+            .crossfade(true)
+            .build()
+    }
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -787,10 +801,7 @@ fun AiDetailOverlay(
                         ) {
                             if (!isImageError && tool.imageUrl.isNotEmpty()) {
                                 AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data(tool.imageUrl)
-                                        .crossfade(true)
-                                        .build(),
+                                    model = imageRequest,
                                     contentDescription = "${tool.name} logo",
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier.fillMaxSize(),

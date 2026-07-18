@@ -54,6 +54,13 @@ class GetAiToolsUseCase @Inject constructor(
                     else -> ""
                 }
 
+                // Well-known Flagship AI tools to prioritize
+                val flagshipAIList = listOf(
+                    "chatgpt", "gemini", "claude", "grok", "perplexity", "deepseek", "qwen",
+                    "cursor", "bolt", "lovable", "google veo", "runway", "midjourney",
+                    "leonardo ai", "ideogram", "elevenlabs", "suno"
+                )
+
                 list.mapNotNull { tool ->
                     var score = 0
 
@@ -107,6 +114,12 @@ class GetAiToolsUseCase @Inject constructor(
                     }
                     if (hasTypoMatch) {
                         score += 35
+                    }
+
+                    // 9. Flagship AI Priority Bonus (+100 points)
+                    // If matched and it is a major industry-leading AI, elevate it to top rank
+                    if (score > 0 && flagshipAIList.any { tool.name.lowercase().contains(it) || tool.id.lowercase().contains(it) }) {
+                        score += 100
                     }
 
                     if (score > 0) {

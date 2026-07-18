@@ -219,10 +219,35 @@ fun MainScreen(viewModel: HomeViewModel) {
                     .fillMaxWidth()
             ) {
                 if (aiTools.isEmpty() && searchQuery.isEmpty()) {
-                    // Show smooth, high-end shimmer skeleton loaders while database is indexing/syncing
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(5) {
-                            AiToolCardSkeleton()
+                    // Show flagship-grade loading experience with progress indicator & shimmer list
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(
+                                color = MetallicGold,
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Loading AI Directory...",
+                                color = MetallicGold.copy(alpha = 0.8f),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                letterSpacing = 0.5.sp
+                            )
+                        }
+
+                        // Shimmering skeleton cards to represent loading placeholders
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            items(5) {
+                                AiToolCardSkeleton()
+                            }
                         }
                     }
                 } else if (aiTools.isEmpty()) {
