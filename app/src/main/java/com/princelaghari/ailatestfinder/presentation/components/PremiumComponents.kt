@@ -579,7 +579,7 @@ fun AdBanner(modifier: Modifier = Modifier) {
             factory = { context ->
                 AdView(context).apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                    adUnitId = "[APNI REAL ADMOB BANNER ID YAHAN PASTE KAREIN]"
                     loadAd(AdRequest.Builder().build())
                 }
             }
