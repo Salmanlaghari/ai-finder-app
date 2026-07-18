@@ -27,11 +27,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.presentation.components.*
 import com.princelaghari.ailatestfinder.presentation.theme.AiLatestFinderTheme
 import com.princelaghari.ailatestfinder.presentation.theme.MetallicGold
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -72,6 +75,10 @@ fun MainScreen(viewModel: HomeViewModel) {
     val favoriteIds by viewModel.favoriteIds.collectAsState()
     val selectedSortOption by viewModel.selectedSortOption.collectAsState()
 
+    // Left Navigation Drawer State
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+
     // Overlay active selection state
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
 
@@ -89,34 +96,130 @@ fun MainScreen(viewModel: HomeViewModel) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF0A0A0A))
-        ) {
-            // Top Header
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp, bottom = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = Color(0xFF141414),
+                drawerContentColor = Color.White,
+                modifier = Modifier.width(300.dp)
             ) {
-                Text(
-                    text = "Ai Latest Finder",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MetallicGold,
-                    letterSpacing = 1.5.sp
+                Spacer(modifier = Modifier.height(24.dp))
+                // Brand Header in Drawer
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                ) {
+                    Text(
+                        text = "Ai Latest Finder",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MetallicGold,
+                        letterSpacing = 1.2.sp
+                    )
+                    Text(
+                        text = "Premium Portal v1.0",
+                        fontSize = 11.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                HorizontalDivider(color = MetallicGold.copy(alpha = 0.2f), modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
+
+                // Drawer Navigation Items
+                val menuItems = listOf(
+                    "Home" to "Explore latest AI tools",
+                    "AI History" to "Your recently viewed models",
+                    "Favorites" to "Your curated AI shortlist",
+                    "Categories" to "Browse by domains",
+                    "Settings" to "Configure interface preferences",
+                    "About" to "Platform details & info",
+                    "Privacy Policy" to "Your data protection rights"
                 )
+
+                menuItems.forEach { (title, subtitle) ->
+                    NavigationDrawerItem(
+                        label = {
+                            Column {
+                                Text(
+                                    text = title,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (title == "Home") MetallicGold else Color.White
+                                )
+                                Text(
+                                    text = subtitle,
+                                    fontSize = 11.sp,
+                                    color = Color.Gray
+                                )
+                            }
+                        },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                        },
+                        colors = NavigationDrawerItemDefaults.colors(
+                            unselectedContainerColor = Color.Transparent
+                        ),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Footer branding in drawer
                 Text(
-                    text = "Discover the World's Best AI Technologies",
+                    text = "Created by Prince Laghari",
                     fontSize = 11.sp,
-                    color = Color.LightGray.copy(alpha = 0.6f),
-                    letterSpacing = 0.5.sp,
-                    modifier = Modifier.padding(top = 2.dp)
+                    fontWeight = FontWeight.SemiBold,
+                    color = MetallicGold.copy(alpha = 0.6f),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(bottom = 24.dp)
                 )
             }
+        }
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFF0A0A0A))
+            ) {
+                // Top Header with (☰) hamburger button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, bottom = 4.dp, start = 8.dp, end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Open Navigation Drawer",
+                            tint = MetallicGold
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Ai Latest Finder",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MetallicGold,
+                            letterSpacing = 1.5.sp
+                        )
+                        Text(
+                            text = "Discover the World's Best AI Technologies",
+                            fontSize = 11.sp,
+                            color = Color.LightGray.copy(alpha = 0.6f),
+                            letterSpacing = 0.5.sp,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                }
 
             // Search Bar with neon pulse border
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -174,40 +277,42 @@ fun MainScreen(viewModel: HomeViewModel) {
                     .align(Alignment.CenterHorizontally)
             )
 
-            // Horizontal Category Chips
-            CategoryChips(
-                selectedCategory = selectedCategory,
-                onCategorySelected = { viewModel.onCategorySelected(it) }
-            )
+            // Horizontal Category Chips (Hide if searching to display ONLY search results)
+            if (searchQuery.isEmpty()) {
+                CategoryChips(
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { viewModel.onCategorySelected(it) }
+                )
 
-            // Dynamic Sorting Selection Chips (Popular, Trending, Newest, A-Z)
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 6.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val sortOptions = listOf("Popular", "Trending", "Newest", "A-Z")
-                items(sortOptions) { option ->
-                    val isSelected = option == selectedSortOption
-                    val background = if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent
-                    val border = if (isSelected) MetallicGold else Color.Gray.copy(alpha = 0.3f)
-                    val textCol = if (isSelected) MetallicGold else Color.Gray
+                // Dynamic Sorting Selection Chips (Popular, Trending, Newest, A-Z) (Hide if searching)
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val sortOptions = listOf("Popular", "Trending", "Newest", "A-Z")
+                    items(sortOptions, key = { it }) { option ->
+                        val isSelected = option == selectedSortOption
+                        val background = if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent
+                        val border = if (isSelected) MetallicGold else Color.Gray.copy(alpha = 0.3f)
+                        val textCol = if (isSelected) MetallicGold else Color.Gray
 
-                    Box(
-                        modifier = Modifier
-                            .background(background, RoundedCornerShape(8.dp))
-                            .border(0.5.dp, border, RoundedCornerShape(8.dp))
-                            .clickable { viewModel.onSortOptionSelected(option) }
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
-                    ) {
-                        Text(
-                            text = "Sort: $option",
-                            color = textCol,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Box(
+                            modifier = Modifier
+                                .background(background, RoundedCornerShape(8.dp))
+                                .border(0.5.dp, border, RoundedCornerShape(8.dp))
+                                .clickable { viewModel.onSortOptionSelected(option) }
+                                .padding(horizontal = 12.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = "Sort: $option",
+                                color = textCol,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -321,4 +426,5 @@ fun MainScreen(viewModel: HomeViewModel) {
             )
         }
     }
+}
 }
