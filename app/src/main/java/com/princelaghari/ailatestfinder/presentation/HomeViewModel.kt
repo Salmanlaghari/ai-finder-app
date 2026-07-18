@@ -58,6 +58,9 @@ class HomeViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _isAppLoading = MutableStateFlow(true)
+    val isAppLoading: StateFlow<Boolean> = _isAppLoading.asStateFlow()
+
     // Interactive States: Favorites & Recently Viewed
     private val _favoriteIds = MutableStateFlow<Set<String>>(emptySet())
     val favoriteIds: StateFlow<Set<String>> = _favoriteIds.asStateFlow()
@@ -95,6 +98,12 @@ class HomeViewModel @Inject constructor(
             connectivityManager.registerNetworkCallback(builder.build(), networkCallback)
         } catch (e: Exception) {
             _isNetworkAvailable.value = true
+        }
+
+        // Smoothly hide loading screen after brief preloading delay to allow full setup
+        viewModelScope.launch {
+            delay(1500)
+            _isAppLoading.value = false
         }
     }
 

@@ -35,34 +35,34 @@ object MockDataSource {
                 description = "Advanced conversational AI by OpenAI.",
                 imageUrl = LOGO_CHATGPT,
                 toolUrl = "https://chatgpt.com", pricing = "Freemium", platforms = listOf("Web", "Android", "iOS", "API Available"),
-                developer = "OpenAI Team", company = "OpenAI Inc.", status = "Trending", launchYear = "2022",
-                tags = listOf("chat", "assistant", "writing", "helper", "free chatbot", "openai"),
-                alternatives = listOf("Claude 3.5 Sonnet (Anthropic)", "Google Gemini 1.5 Pro")
+                developer = "OpenAI", company = "OpenAI", status = "Trending", launchYear = "2022",
+                tags = listOf("chat", "assistant", "writing", "helper", "free chatbot", "openai", "chatgpt"),
+                alternatives = listOf("Claude 3.5 Sonnet", "Google Gemini 1.5 Pro")
             ),
             AiTool(
                 id = "claude", name = "Claude 3.5 Sonnet (Anthropic)", category = "Text AI",
                 description = "State-of-the-art reasoning model by Anthropic.",
                 imageUrl = LOGO_CLAUDE,
                 toolUrl = "https://claude.ai", pricing = "Freemium", platforms = listOf("Web", "iOS", "Android", "API Available"),
-                developer = "Anthropic Research", company = "Anthropic PBC", status = "Trending", launchYear = "2024",
-                tags = listOf("coding assistant", "reasoning", "writing", "chat", "free chatbot", "anthropic"),
-                alternatives = listOf("ChatGPT (OpenAI)", "Google Gemini 1.5 Pro")
+                developer = "Anthropic", company = "Anthropic", status = "Trending", launchYear = "2024",
+                tags = listOf("coding assistant", "reasoning", "writing", "chat", "free chatbot", "anthropic", "claude"),
+                alternatives = listOf("ChatGPT", "Google Gemini 1.5 Pro")
             ),
             AiTool(
                 id = "google-gemini-pro", name = "Google Gemini 1.5 Pro", category = "Text AI",
                 description = "Google's flagship multimodal model with ultra-long context.",
                 imageUrl = LOGO_GEMINI,
                 toolUrl = "https://gemini.google.com", pricing = "Freemium", platforms = listOf("Web", "Android", "iOS", "API Available"),
-                developer = "Google DeepMind", company = "Alphabet Inc.", status = "Popular", launchYear = "2023",
+                developer = "Google DeepMind", company = "Google", status = "Popular", launchYear = "2023",
                 tags = listOf("google ai", "translation", "multimodal", "free chatbot", "google", "gemini"),
-                alternatives = listOf("ChatGPT (OpenAI)", "Claude 3.5 Sonnet (Anthropic)")
+                alternatives = listOf("ChatGPT", "Claude 3.5 Sonnet")
             ),
             AiTool(
                 id = "google-veo", name = "Google Veo", category = "Video AI",
                 description = "High-definition generative video model by Google DeepMind.",
                 imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://deepmind.google/technologies/veo", pricing = "Paid", platforms = listOf("Web"),
-                developer = "Google DeepMind", company = "Alphabet Inc.", status = "New", launchYear = "2024",
+                developer = "Google DeepMind", company = "Google", status = "New", launchYear = "2024",
                 tags = listOf("video generator", "google veo", "veo", "cinematic", "video maker", "google"),
                 alternatives = listOf("OpenAI Sora", "Luma Dream Machine")
             ),
@@ -71,7 +71,7 @@ object MockDataSource {
                 description = "Highest quality text-to-image generator by Google.",
                 imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://deepmind.google/technologies/imagen-3", pricing = "Paid", platforms = listOf("Web"),
-                developer = "Google DeepMind", company = "Alphabet Inc.", status = "New", launchYear = "2024",
+                developer = "Google DeepMind", company = "Google", status = "New", launchYear = "2024",
                 tags = listOf("image generator", "google imagen 3", "imagen", "art", "google"),
                 alternatives = listOf("Midjourney", "DALL-E 3")
             ),
@@ -80,43 +80,43 @@ object MockDataSource {
                 description = "AI-powered personalized research assistant by Google.",
                 imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://notebooklm.google", pricing = "Free", platforms = listOf("Web"),
-                developer = "Google Labs", company = "Alphabet Inc.", status = "Trending", launchYear = "2024",
+                developer = "Google Labs", company = "Google", status = "Trending", launchYear = "2024",
                 tags = listOf("research assistant", "notebooklm", "notes", "google"),
-                alternatives = listOf("Perplexity", "ChatGPT (OpenAI)")
+                alternatives = listOf("Perplexity", "ChatGPT")
             ),
             AiTool(
                 id = "grok", name = "Grok", category = "Text AI",
                 description = "Real-time query engine with direct, unfiltered access to X (Twitter) search logs.",
                 imageUrl = LOGO_GROK,
                 toolUrl = "https://x.ai", pricing = "Paid", platforms = listOf("Web", "iOS", "Android"),
-                developer = "xAI Team", company = "xAI Corp.", status = "New", launchYear = "2023",
-                tags = listOf("twitter", "realtime", "search", "grok"),
-                alternatives = listOf("ChatGPT (OpenAI)", "Google Gemini 1.5 Pro")
+                developer = "xAI Team", company = "xAI", status = "New", launchYear = "2023",
+                tags = listOf("twitter", "realtime", "search", "grok", "xai"),
+                alternatives = listOf("ChatGPT", "Google Gemini 1.5 Pro")
             ),
             AiTool(
                 id = "deepseek", name = "DeepSeek", category = "Text AI",
                 description = "High-performance open-source language model specializing in mathematical and coding logic.",
                 imageUrl = LOGO_DEEPSEEK,
                 toolUrl = "https://deepseek.com", pricing = "Free", platforms = listOf("Web", "API Available"),
-                developer = "DeepSeek Inc.", company = "DeepSeek Group", status = "New", launchYear = "2024",
+                developer = "DeepSeek Inc.", company = "DeepSeek", status = "New", launchYear = "2024",
                 tags = listOf("open source", "free chatbot", "coding assistant", "deepseek"),
-                alternatives = listOf("ChatGPT (OpenAI)", "Claude 3.5 Sonnet (Anthropic)")
+                alternatives = listOf("ChatGPT", "Claude 3.5 Sonnet")
             ),
             AiTool(
                 id = "perplexity", name = "Perplexity", category = "Research",
                 description = "Conversational search engine that provides real-time citations and sources for academic or general queries.",
-                imageUrl = LOGO_DEEPSEEK,
+                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png",
                 toolUrl = "https://perplexity.ai", pricing = "Freemium", platforms = listOf("Web", "iOS", "Android"),
-                developer = "Perplexity AI Team", company = "Perplexity AI Inc.", status = "Popular", launchYear = "2022",
-                tags = listOf("search", "research ai", "citations", "academic", "helper"),
-                alternatives = listOf("Google Gemini 1.5 Pro", "ChatGPT (OpenAI)")
+                developer = "Perplexity AI Team", company = "Perplexity AI", status = "Popular", launchYear = "2022",
+                tags = listOf("search", "research ai", "citations", "academic", "helper", "perplexity"),
+                alternatives = listOf("Google Gemini 1.5 Pro", "ChatGPT")
             ),
             AiTool(
                 id = "midjourney", name = "Midjourney", category = "Image AI",
                 description = "Ultra-realistic text-to-image generator.",
                 imageUrl = LOGO_MIDJOURNEY,
                 toolUrl = "https://midjourney.com", pricing = "Paid", platforms = listOf("Web"),
-                developer = "Midjourney Lab", company = "Midjourney Inc.", status = "Trending", launchYear = "2022",
+                developer = "Midjourney Lab", company = "Midjourney", status = "Trending", launchYear = "2022",
                 tags = listOf("image generator", "art", "design", "logo maker", "best image ai", "midjourney"),
                 alternatives = listOf("DALL-E 3", "Flux")
             ),
@@ -125,8 +125,8 @@ object MockDataSource {
                 description = "Text-to-video generation model.",
                 imageUrl = LOGO_OPENAI,
                 toolUrl = "https://openai.com/sora", pricing = "Paid", platforms = listOf("Web"),
-                developer = "OpenAI Media Lab", company = "OpenAI Inc.", status = "Trending", launchYear = "2024",
-                tags = listOf("video generator", "sora", "cinematic", "video maker"),
+                developer = "OpenAI", company = "OpenAI", status = "Trending", launchYear = "2024",
+                tags = listOf("video generator", "sora", "cinematic", "video maker", "openai"),
                 alternatives = listOf("Google Veo", "Luma Dream Machine")
             ),
             AiTool(
@@ -134,7 +134,7 @@ object MockDataSource {
                 description = "A rapid, cinematic video generator that renders realistic, physically accurate motion.",
                 imageUrl = LOGO_DEEPSEEK,
                 toolUrl = "https://lumalabs.ai/dream-machine", pricing = "Freemium", platforms = listOf("Web", "API Available"),
-                developer = "Luma Lab", company = "Luma Labs Inc.", status = "Trending", launchYear = "2024",
+                developer = "Luma Lab", company = "Luma Labs", status = "Trending", launchYear = "2024",
                 tags = listOf("video generator", "3d motion", "animation", "video maker"),
                 alternatives = listOf("OpenAI Sora", "Google Veo")
             ),
@@ -143,7 +143,7 @@ object MockDataSource {
                 description = "An ultra-premium AI music studio that crafts professional vocal tracks, lyrics, and instrumentals.",
                 imageUrl = LOGO_SUNO,
                 toolUrl = "https://suno.com", pricing = "Freemium", platforms = listOf("Web", "iOS"),
-                developer = "Suno Creators", company = "Suno Inc.", status = "Trending", launchYear = "2023",
+                developer = "Suno Creators", company = "Suno", status = "Trending", launchYear = "2023",
                 tags = listOf("music generator", "song maker", "lyrics writer", "instrumental", "suno"),
                 alternatives = listOf("Udio")
             ),
@@ -152,7 +152,7 @@ object MockDataSource {
                 description = "Advanced AI voice generator specializing in natural text-to-speech, dubbing, and voice cloning.",
                 imageUrl = LOGO_ELEVENLABS,
                 toolUrl = "https://elevenlabs.io", pricing = "Freemium", platforms = listOf("Web", "iOS", "API Available"),
-                developer = "ElevenLabs Team", company = "ElevenLabs Inc.", status = "Popular", launchYear = "2023",
+                developer = "ElevenLabs Team", company = "ElevenLabs", status = "Popular", launchYear = "2023",
                 tags = listOf("voice ai", "voice clone", "dubbing", "speech generator", "elevenlabs"),
                 alternatives = listOf("Suno AI")
             ),
@@ -161,8 +161,8 @@ object MockDataSource {
                 description = "AI pair programmer.",
                 imageUrl = LOGO_COPILOT,
                 toolUrl = "https://github.com/features/copilot", pricing = "Paid", platforms = listOf("Web", "Android", "iOS", "API Available"),
-                developer = "GitHub & OpenAI", company = "Microsoft Corporation", status = "Popular", launchYear = "2021",
-                tags = listOf("coding assistant", "programming", "autocomplete", "vscode", "copilot"),
+                developer = "GitHub & OpenAI", company = "Microsoft", status = "Popular", launchYear = "2021",
+                tags = listOf("coding assistant", "programming", "autocomplete", "vscode", "copilot", "github", "openai"),
                 alternatives = listOf("Cursor")
             )
         )
@@ -207,6 +207,19 @@ object MockDataSource {
                     Pair("$category Suite Pro $i", "Professional enterprise $category engine providing optimized workspace workflows, automated asset mapping, and premium API integrations.")
                 }
 
+                // Dynamically map categories to stable, verified high-resolution PNG brand icons to avoid any generic/alphabet icon fallbacks!
+                val mappedImage = when (category) {
+                    "Text AI" -> LOGO_CHATGPT
+                    "Image AI" -> LOGO_MIDJOURNEY
+                    "Video AI" -> LOGO_GOOGLE
+                    "Audio AI" -> LOGO_ELEVENLABS
+                    "Music AI" -> LOGO_SUNO
+                    "Coding AI" -> LOGO_COPILOT
+                    "Productivity" -> LOGO_GOOGLE
+                    "Research" -> LOGO_DEEPSEEK
+                    else -> LOGO_DEEPSEEK
+                }
+
                 val toolId = "${category.replace(" ", "").lowercase()}_$i"
                 // Check if this ID already exists in presets to prevent duplicates
                 if (presets.none { it.id == toolId }) {
@@ -216,16 +229,16 @@ object MockDataSource {
                             name = name,
                             category = category,
                             description = desc,
-                            imageUrl = LOGO_DEEPSEEK,
+                            imageUrl = mappedImage,
                             toolUrl = "https://google.com/search?q=${Uri.encode(name)}",
                             pricing = if (i % 3 == 0) "Free" else if (i % 3 == 1) "Freemium" else "Paid",
                             platforms = listOf("Web", "API Available", "Android"),
-                            developer = "${name.split(" ").first()} Labs",
-                            company = "${name.split(" ").first()} International Inc.",
+                            developer = if (name.contains("Google", ignoreCase = true)) "Google" else if (name.contains("OpenAI", ignoreCase = true)) "OpenAI" else "${name.split(" ").first()} Labs",
+                            company = if (name.contains("Google", ignoreCase = true)) "Google" else if (name.contains("OpenAI", ignoreCase = true)) "OpenAI" else "${name.split(" ").first()} Inc.",
                             status = if (i % 3 == 0) "Trending" else if (i % 3 == 1) "New" else "Popular",
                             launchYear = "${2020 + (i % 5)}",
                             tags = listOf(category.lowercase(), name.lowercase(), "pro", "free"),
-                            alternatives = listOf("ChatGPT (OpenAI)", "Claude 3.5 Sonnet (Anthropic)")
+                            alternatives = listOf("ChatGPT", "Claude 3.5 Sonnet")
                         )
                     )
                 }

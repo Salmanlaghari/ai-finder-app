@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AiLatestFinderTheme {
+                val isAppLoading by viewModel.isAppLoading.collectAsState()
                 val isOnline by viewModel.isNetworkAvailable.collectAsState()
                 val isRefreshing by viewModel.isRefreshing.collectAsState()
 
@@ -52,7 +53,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFF0A0A0A)
                 ) {
-                    if (isOnline) {
+                    if (isAppLoading) {
+                        PremiumSplashScreen()
+                    } else if (isOnline) {
                         MainScreen(viewModel)
                     } else {
                         NetworkErrorScreen(

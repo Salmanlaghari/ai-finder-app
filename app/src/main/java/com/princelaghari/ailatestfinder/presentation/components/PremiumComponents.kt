@@ -87,6 +87,86 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
 }
 
 /**
+ * A breathtaking premium dark-and-gold shimmering splash screen.
+ * Displays during instant startup preloading to completely eliminate any blank/black screens.
+ */
+@Composable
+fun PremiumSplashScreen(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "splash")
+    val alphaPulse by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alphaPulse"
+    )
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFF0A0A0A)),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Glowing gold emblem placeholder
+        Box(
+            modifier = Modifier
+                .size(90.dp)
+                .background(Color(0xFF141414), shape = CircleShape)
+                .border(2.dp, MetallicGold.copy(alpha = alphaPulse), CircleShape)
+                .padding(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "AI",
+                color = MetallicGold,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.ExtraBold,
+                letterSpacing = 1.5.sp,
+                modifier = Modifier.alpha(alphaPulse)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // Large title
+        Text(
+            text = "Ai Latest Finder",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = MetallicGold,
+            letterSpacing = 2.sp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Dynamic Subtitle Shimmer
+        ShimmerBrandingText()
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        // Circular progress loader with smooth metallic gold styling
+        CircularProgressIndicator(
+            color = MetallicGold,
+            strokeWidth = 3.dp,
+            modifier = Modifier.size(28.dp)
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        Text(
+            text = "Loading AI Directory...",
+            color = Color.Gray,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.5.sp
+        )
+    }
+}
+
+/**
  * Hardware-accelerated shimmer modifier for premium loading/skeleton states.
  */
 fun Modifier.shimmerEffect(): Modifier = composed {

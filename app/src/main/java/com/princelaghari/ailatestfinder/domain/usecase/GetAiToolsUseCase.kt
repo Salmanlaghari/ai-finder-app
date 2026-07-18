@@ -26,7 +26,8 @@ class GetAiToolsUseCase @Inject constructor(
                     }
                 }
             } else {
-                // Multi-field intelligent search logic: search across name, company, description, category, tags/keywords, and aliases.
+                // Multi-field intelligent search logic: search strictly across name, company, developer, description, category, and tags/keywords.
+                // Exclude alternatives to prevent cross-pollinating matches on unrelated entries.
                 list.mapNotNull { tool ->
                     val matchesName = tool.name.contains(cleanQuery, ignoreCase = true)
                     val matchesDeveloper = tool.developer.contains(cleanQuery, ignoreCase = true)
@@ -34,7 +35,6 @@ class GetAiToolsUseCase @Inject constructor(
                     val matchesDescription = tool.description.contains(cleanQuery, ignoreCase = true)
                     val matchesCategory = tool.category.contains(cleanQuery, ignoreCase = true)
                     val matchesTags = tool.tags.any { it.contains(cleanQuery, ignoreCase = true) }
-                    val matchesAlternatives = tool.alternatives.any { it.contains(cleanQuery, ignoreCase = true) }
 
                     // Typo Tolerance: Levenshtein distance matching on name tokens
                     val queryTokens = cleanQuery.split("\\s+".toRegex()).filter { it.length > 2 }
@@ -50,7 +50,7 @@ class GetAiToolsUseCase @Inject constructor(
                         }
                     }
 
-                    if (matchesName || matchesDeveloper || matchesCompany || matchesDescription || matchesCategory || matchesTags || matchesAlternatives || hasTypoMatch) {
+                    if (matchesName || matchesDeveloper || matchesCompany || matchesDescription || matchesCategory || matchesTags || hasTypoMatch) {
                         // Compute highly intelligent relevance-ranking score
                         var score = 0
 
@@ -69,9 +69,6 @@ class GetAiToolsUseCase @Inject constructor(
                         }
                         if (matchesTags) {
                             score += 30
-                        }
-                        if (matchesAlternatives) {
-                            score += 25
                         }
                         if (matchesDescription) {
                             score += 15
