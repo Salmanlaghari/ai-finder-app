@@ -389,7 +389,7 @@ fun CategoryChips(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(categories) { category ->
+        items(categories, key = { it }) { category ->
             val isSelected = category == selectedCategory
             val backgroundBrush = if (isSelected) {
                 Brush.linearGradient(listOf(MetallicGold, Color(0xFF9E7E1D)))
@@ -561,52 +561,6 @@ fun AiToolCard(
     }
 }
 
-/**
- * BuyMeACoffeeWidget is a highly styled support action widget that encourages support
- * by opening a custom mock page on click.
- */
-@Composable
-fun BuyMeACoffeeWidget(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF241C07)),
-        shape = RoundedCornerShape(14.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .border(
-                width = 1.dp,
-                color = MetallicGold.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(14.dp)
-            )
-            .clickable {
-                openUrlWithChromeCustomTabs(context, "https://buymeacoffee.com/princelaghari")
-            }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = "☕ Buy Me a Coffee",
-                color = Color(0xFFFFE082),
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                letterSpacing = 0.5.sp
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "Support Prince's development",
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 12.sp
-            )
-        }
-    }
-}
 
 /**
  * AdBanner integrates Google AdMob SDK directly utilizing test ad units safely.
@@ -776,12 +730,21 @@ fun AiDetailOverlay(
                             color = MetallicGold,
                             letterSpacing = 1.5.sp
                         )
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close overlay",
-                                tint = Color.Gray
-                            )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = onToggleFavorite) {
+                                Icon(
+                                    imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorite Toggle",
+                                    tint = if (isFavorite) Color.Red else MetallicGold
+                                )
+                            }
+                            IconButton(onClick = onDismiss) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close overlay",
+                                    tint = Color.Gray
+                                )
+                            }
                         }
                     }
 
@@ -923,58 +886,6 @@ fun AiDetailOverlay(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Quick Interactive Actions (Copy link, Share, Favorite)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Favorite
-                        IconButton(onClick = onToggleFavorite) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = "Favorite Toggle",
-                                tint = if (isFavorite) Color.Red else MetallicGold
-                            )
-                        }
-
-                        // Share
-                        IconButton(onClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_SUBJECT, "Check out this amazing AI tool!")
-                                    putExtra(Intent.EXTRA_TEXT, "Look at ${tool.name}: ${tool.description}. Explore it here: ${tool.toolUrl}")
-                                }
-                                context.startActivity(Intent.createChooser(intent, "Share AI Tool"))
-                            } catch (e: Exception) {
-                                // fallback ignore
-                            }
-                        }) {
-                            Icon(imageVector = Icons.Default.Share, contentDescription = "Share", tint = MetallicGold)
-                        }
-
-                        // Copy Link
-                        Button(
-                            onClick = {
-                                try {
-                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                    val clip = ClipData.newPlainText("AI Tool Link", tool.toolUrl)
-                                    clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, "Copied link to clipboard!", Toast.LENGTH_SHORT).show()
-                                } catch (e: Exception) {
-                                    // fallback ignore
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
-                            shape = RoundedCornerShape(8.dp)
-                        ) {
-                            Text(text = "COPY LINK", color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
                     // Primary Official Website custom tab button
                     Button(
                         onClick = { openUrlWithChromeCustomTabs(context, tool.toolUrl) },
@@ -1009,6 +920,28 @@ fun AiDetailOverlay(
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
                                     Text(text = altName, color = PaleGold, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                        }
+                    }
+
+                    // Similar AI / Tags Section
+                    if (tool.tags.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(text = "SIMILAR AI / TAGS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(tool.tags, key = { it }) { tag ->
+                                Box(
+                                    modifier = Modifier
+                                        .background(Color(0xFF222222), RoundedCornerShape(8.dp))
+                                        .border(0.5.dp, MetallicGold.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(text = tag, color = Color.White, fontSize = 11.sp)
                                 }
                             }
                         }

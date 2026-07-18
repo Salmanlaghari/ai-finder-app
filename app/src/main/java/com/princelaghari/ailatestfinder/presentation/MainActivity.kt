@@ -180,7 +180,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                 onCategorySelected = { viewModel.onCategorySelected(it) }
             )
 
-            // Dynamic Sorting Selection Chips (Trending, Newest, Popular, A-Z)
+            // Dynamic Sorting Selection Chips (Popular, Trending, Newest, A-Z)
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,7 +188,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                 contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                val sortOptions = listOf("A-Z", "Trending", "Newest", "Popular")
+                val sortOptions = listOf("Popular", "Trending", "Newest", "A-Z")
                 items(sortOptions) { option ->
                     val isSelected = option == selectedSortOption
                     val background = if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent
@@ -275,7 +275,10 @@ fun MainScreen(viewModel: HomeViewModel) {
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
-                        itemsIndexed(aiTools) { index, tool ->
+                        itemsIndexed(
+                            items = aiTools,
+                            key = { _, tool -> tool.id }
+                        ) { index, tool ->
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 // Smooth entry animations for AI cards
                                 AnimatedVisibility(
@@ -299,11 +302,6 @@ fun MainScreen(viewModel: HomeViewModel) {
                                     )
                                 }
                             }
-                        }
-
-                        // Add premium support widget inside bottom list area
-                        item {
-                            BuyMeACoffeeWidget()
                         }
                     }
                 }

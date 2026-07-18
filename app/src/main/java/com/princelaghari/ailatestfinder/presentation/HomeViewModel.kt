@@ -45,7 +45,7 @@ class HomeViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow("All")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
-    private val _selectedSortOption = MutableStateFlow("A-Z")
+    private val _selectedSortOption = MutableStateFlow("Popular")
     val selectedSortOption: StateFlow<String> = _selectedSortOption.asStateFlow()
 
     private val _visibleItemLimit = MutableStateFlow(50)
@@ -61,10 +61,13 @@ class HomeViewModel @Inject constructor(
     private val _recentlyViewedIds = MutableStateFlow<List<String>>(emptyList())
     val recentlyViewedIds: StateFlow<List<String>> = _recentlyViewedIds.asStateFlow()
 
+    private val _syncTrigger = MutableStateFlow(0)
+
     // Network Callbacks
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             _isNetworkAvailable.value = true
+            _syncTrigger.value = _syncTrigger.value + 1
         }
 
         override fun onLost(network: Network) {
@@ -94,8 +97,9 @@ class HomeViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val aiTools: StateFlow<List<AiTool>> = combine(
         _searchQuery,
-        _selectedCategory
-    ) { query, category ->
+        _selectedCategory,
+        _syncTrigger
+    ) { query, category, _ ->
         Pair(query, category)
     }.flatMapLatest { (query, category) ->
         getAiToolsUseCase(query = query, category = category)
@@ -185,7 +189,11 @@ class HomeViewModel @Inject constructor(
 
     fun retryConnection() {
         _isRefreshing.value = true
-        _isNetworkAvailable.value = isCurrentlyConnected()
+        val connected = isCurrentlyConnected()
+        _isNetworkAvailable.value = connected
+        if (connected) {
+            _syncTrigger.value = _syncTrigger.value + 1
+        }
         viewModelScope.launch {
             delay(800)
             _isRefreshing.value = false
