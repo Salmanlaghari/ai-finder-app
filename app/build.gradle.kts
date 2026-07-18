@@ -116,6 +116,7 @@ dependencies {
 
     // Image Loader
     implementation(libs.coil.compose)
+    implementation(libs.coil.svg)
 
     // Testing
     testImplementation(libs.junit)

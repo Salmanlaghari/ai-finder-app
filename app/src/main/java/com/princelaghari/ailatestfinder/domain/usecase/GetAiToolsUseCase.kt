@@ -26,84 +26,101 @@ class GetAiToolsUseCase @Inject constructor(
                     }
                 }
             } else {
-                // Multi-field intelligent search logic: search strictly across name, company, developer, description, category, and tags/keywords.
-                // Exclude alternatives to prevent cross-pollinating matches on unrelated entries.
-                list.mapNotNull { tool ->
-                    val matchesName = tool.name.contains(cleanQuery, ignoreCase = true)
-                    val matchesDeveloper = tool.developer.contains(cleanQuery, ignoreCase = true)
-                    val matchesCompany = tool.company.contains(cleanQuery, ignoreCase = true)
-                    val matchesDescription = tool.description.contains(cleanQuery, ignoreCase = true)
-                    val matchesCategory = tool.category.contains(cleanQuery, ignoreCase = true)
-                    val matchesTags = tool.tags.any { it.contains(cleanQuery, ignoreCase = true) }
+                val terms = cleanQuery.lowercase().split("\\s+".toRegex()).filter { it.isNotEmpty() }
+                if (terms.isEmpty()) {
+                    list
+                } else {
+                    list.mapNotNull { tool ->
+                        val nameLower = tool.name.lowercase()
+                        val devLower = tool.developer.lowercase()
+                        val compLower = tool.company.lowercase()
+                        val descLower = tool.description.lowercase()
+                        val catLower = tool.category.lowercase()
+                        val statusLower = tool.status.lowercase()
+                        val tagsLower = tool.tags.map { it.lowercase() }
+                        val nameWords = nameLower.split("\\s+".toRegex())
 
-                    // Typo Tolerance: Levenshtein distance matching on name tokens
-                    val queryTokens = cleanQuery.split("\\s+".toRegex()).filter { it.length > 2 }
-                    val nameWords = tool.name.lowercase().split("\\s+".toRegex())
-                    val hasTypoMatch = queryTokens.isNotEmpty() && queryTokens.any { token ->
-                        nameWords.any { word ->
-                            val dist = levenshteinDistance(token, word)
-                            dist <= when {
-                                token.length > 5 -> 2
-                                token.length > 3 -> 1
-                                else -> 0
+                        // Check if all search terms match at least one metadata field in the tool (supporting typo-tolerance on terms)
+                        val matchesAllTerms = terms.all { term ->
+                            val matchesField = nameLower.contains(term) ||
+                                    devLower.contains(term) ||
+                                    compLower.contains(term) ||
+                                    descLower.contains(term) ||
+                                    catLower.contains(term) ||
+                                    statusLower.contains(term) ||
+                                    tagsLower.any { it.contains(term) }
+
+                            if (matchesField) {
+                                true
+                            } else {
+                                // Typo tolerance check for this term on name words
+                                term.length > 2 && nameWords.any { word ->
+                                    val dist = levenshteinDistance(term, word)
+                                    dist <= when {
+                                        term.length > 5 -> 2
+                                        term.length > 3 -> 1
+                                        else -> 0
+                                    }
+                                }
                             }
                         }
+
+                        if (matchesAllTerms) {
+                            var score = 0
+
+                            // 1. Direct/Sub-string Name Match Scoring on full query
+                            if (nameLower.equals(cleanQuery, ignoreCase = true)) {
+                                score += 150
+                            } else if (nameLower.startsWith(cleanQuery, ignoreCase = true)) {
+                                score += 80
+                            } else if (nameLower.contains(cleanQuery, ignoreCase = true)) {
+                                score += 50
+                            }
+
+                            // 2. Score individual terms matching fields
+                            terms.forEach { term ->
+                                val hasTypoMatch = term.length > 2 && nameWords.any { word ->
+                                    levenshteinDistance(term, word) <= when {
+                                        term.length > 5 -> 2
+                                        term.length > 3 -> 1
+                                        else -> 0
+                                    }
+                                }
+
+                                if (nameLower.contains(term)) score += 40
+                                if (catLower.contains(term)) score += 35
+                                if (statusLower.contains(term)) score += 30
+                                if (tagsLower.any { it.contains(term) }) score += 25
+                                if (descLower.contains(term)) score += 15
+                                if (devLower.contains(term) || compLower.contains(term)) score += 20
+                                if (hasTypoMatch) score += 30
+                            }
+
+                            // 3. Status Boost
+                            if (tool.status.equals("Popular", ignoreCase = true)) {
+                                score += 60
+                            } else if (tool.status.equals("Trending", ignoreCase = true)) {
+                                score += 40
+                            }
+
+                            // 4. Flagship AI Priority Bonus (+100 points) to place high-profile giants first
+                            val flagshipAIList = listOf(
+                                "chatgpt", "gemini", "claude", "grok", "perplexity", "deepseek",
+                                "veo", "sora", "midjourney", "notebooklm", "imagen", "cursor", "bolt", "lovable",
+                                "runway", "leonardo", "ideogram", "elevenlabs", "suno", "flux"
+                            )
+                            if (flagshipAIList.any { nameLower.contains(it) || tool.id.contains(it) }) {
+                                score += 100
+                            }
+
+                            Pair(tool, score)
+                        } else {
+                            null
+                        }
                     }
-
-                    if (matchesName || matchesDeveloper || matchesCompany || matchesDescription || matchesCategory || matchesTags || hasTypoMatch) {
-                        // Compute highly intelligent relevance-ranking score
-                        var score = 0
-
-                        // 1. Direct Name Match Scoring
-                        if (tool.name.equals(cleanQuery, ignoreCase = true)) {
-                            score += 150
-                        } else if (tool.name.startsWith(cleanQuery, ignoreCase = true)) {
-                            score += 80
-                        } else if (matchesName) {
-                            score += 50
-                        }
-
-                        // 2. Metadata Field Matching
-                        if (matchesCategory) {
-                            score += 40
-                        }
-                        if (matchesTags) {
-                            score += 30
-                        }
-                        if (matchesDescription) {
-                            score += 15
-                        }
-                        if (matchesDeveloper || matchesCompany) {
-                            score += 20
-                        }
-                        if (hasTypoMatch) {
-                            score += 30
-                        }
-
-                        // 3. Intelligent Status Rank: Popular and Trending AI rank higher!
-                        if (tool.status.equals("Popular", ignoreCase = true)) {
-                            score += 60
-                        } else if (tool.status.equals("Trending", ignoreCase = true)) {
-                            score += 40
-                        }
-
-                        // 4. Flagship AI Priority Bonus (+100 points) to place high-profile giants first
-                        val flagshipAIList = listOf(
-                            "chatgpt", "gemini", "claude", "grok", "perplexity", "deepseek",
-                            "veo", "sora", "midjourney", "notebooklm", "imagen", "cursor", "bolt", "lovable",
-                            "runway", "leonardo", "ideogram", "elevenlabs", "suno", "flux"
-                        )
-                        if (flagshipAIList.any { tool.name.contains(it, ignoreCase = true) || tool.id.contains(it, ignoreCase = true) }) {
-                            score += 100
-                        }
-
-                        Pair(tool, score)
-                    } else {
-                        null
-                    }
+                    .sortedByDescending { it.second } // Sort by computed score descending (Highest Rank First)
+                    .map { it.first }
                 }
-                .sortedByDescending { it.second } // Sort by computed score descending (Highest Rank First)
-                .map { it.first }
             }
         }
     }

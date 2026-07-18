@@ -29,6 +29,10 @@ class AdManager @Inject constructor() {
     private val TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
     private val TEST_REWARDED_ID = "ca-app-pub-3940256099942544/5224354917"
 
+    private var bannerId: String = TEST_BANNER_ID
+    private var interstitialId: String = TEST_INTERSTITIAL_ID
+    private var rewardedId: String = TEST_REWARDED_ID
+
     // Preloaded Ad references
     private var preloadedInterstitialAd: InterstitialAd? = null
     private var preloadedRewardedAd: RewardedAd? = null
@@ -46,6 +50,18 @@ class AdManager @Inject constructor() {
      * Initializes the Google Mobile Ads SDK on a background thread.
      */
     fun initialize(context: Context) {
+        val appContext = context.applicationContext
+        try {
+            val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
+            if (bId.isNotEmpty()) bannerId = bId
+            val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
+            if (iId.isNotEmpty()) interstitialId = iId
+            val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
+            if (rId.isNotEmpty()) rewardedId = rId
+        } catch (e: Exception) {
+            // Keep test fallbacks
+        }
+
         if (isInitialized.compareAndSet(false, true)) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -66,7 +82,7 @@ class AdManager @Inject constructor() {
      * Returns the active banner Ad Unit ID.
      */
     fun getBannerAdUnitId(): String {
-        return TEST_BANNER_ID
+        return bannerId
     }
 
     /**
@@ -80,7 +96,7 @@ class AdManager @Inject constructor() {
 
         InterstitialAd.load(
             context.applicationContext,
-            TEST_INTERSTITIAL_ID,
+            interstitialId,
             adRequest,
             object : InterstitialAdLoadCallback() {
                 override fun onAdLoaded(interstitialAd: InterstitialAd) {
@@ -121,7 +137,7 @@ class AdManager @Inject constructor() {
 
         RewardedAd.load(
             context.applicationContext,
-            TEST_REWARDED_ID,
+            rewardedId,
             adRequest,
             object : RewardedAdLoadCallback() {
                 override fun onAdLoaded(rewardedAd: RewardedAd) {

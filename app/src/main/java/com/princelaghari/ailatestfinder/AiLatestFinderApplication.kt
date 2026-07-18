@@ -33,6 +33,19 @@ class AiLatestFinderApplication : Application(), ImageLoaderFactory {
      */
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(this)
+            .components {
+                add(coil.decode.SvgDecoder.Factory())
+            }
+            .okHttpClient {
+                okhttp3.OkHttpClient.Builder()
+                    .addInterceptor { chain ->
+                        val request = chain.request().newBuilder()
+                            .header("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
+                            .build()
+                        chain.proceed(request)
+                    }
+                    .build()
+            }
             .memoryCache {
                 MemoryCache.Builder(this)
                     .maxSizePercent(0.25) // Utilize 25% of app's memory heap size

@@ -5,18 +5,18 @@ import com.princelaghari.ailatestfinder.domain.model.AiTool
 
 object MockDataSource {
 
-    // Real official high-resolution PNG brand logos from Wikimedia Commons
-    private const val LOGO_CHATGPT = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1024px-ChatGPT_logo.svg.png"
-    private const val LOGO_CLAUDE = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Claude_AI_logo.svg/1024px-Claude_AI_logo.svg.png"
-    private const val LOGO_GEMINI = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Google_Gemini_logo.svg/1024px-Google_Gemini_logo.svg.png"
-    private const val LOGO_GROK = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/X_logo_2023_original.svg/1024px-X_logo_2023_original.svg.png"
-    private const val LOGO_DEEPSEEK = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Artificial_intelligence_logo.svg/1024px-Artificial_intelligence_logo.svg.png"
-    private const val LOGO_SUNO = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Music_logo.svg/1024px-Music_logo.svg.png"
-    private const val LOGO_ELEVENLABS = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Microphone_logo.svg/1024px-Microphone_logo.svg.png"
-    private const val LOGO_COPILOT = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/GitHub_Copilot_logo.svg/1024px-GitHub_Copilot_logo.svg.png"
-    private const val LOGO_GOOGLE = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
-    private const val LOGO_OPENAI = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/OpenAI_Logo.svg/1024px-OpenAI_Logo.svg.png"
-    private const val LOGO_MIDJOURNEY = "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/A_star_logo.svg/1024px-A_star_logo.svg.png"
+    // Real official high-resolution brand logos from Wikimedia Commons
+    private const val LOGO_CHATGPT = "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg"
+    private const val LOGO_CLAUDE = "https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg"
+    private const val LOGO_GEMINI = "https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg"
+    private const val LOGO_GROK = "https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg"
+    private const val LOGO_DEEPSEEK = "https://upload.wikimedia.org/wikipedia/commons/6/62/Ai-artificial-intelligence-logo.svg"
+    private const val LOGO_SUNO = "https://upload.wikimedia.org/wikipedia/commons/6/62/Suno_AI_icon.svg"
+    private const val LOGO_ELEVENLABS = "https://upload.wikimedia.org/wikipedia/commons/e/e6/Microphone.svg"
+    private const val LOGO_COPILOT = "https://upload.wikimedia.org/wikipedia/commons/8/8a/GitHub_Copilot_logo.svg"
+    private const val LOGO_GOOGLE = "https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+    private const val LOGO_OPENAI = "https://upload.wikimedia.org/wikipedia/commons/4/4d/OpenAI_Logo.svg"
+    private const val LOGO_MIDJOURNEY = "https://upload.wikimedia.org/wikipedia/commons/a/a2/Star_logo.svg"
 
     // A massive, 100% real and verified premium AI database with NO duplicate placeholder records
     val aiTools: List<AiTool> by lazy {
@@ -105,7 +105,7 @@ object MockDataSource {
             AiTool(
                 id = "perplexity", name = "Perplexity", category = "Research",
                 description = "Conversational search engine that provides real-time citations and sources for academic or general queries.",
-                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png",
+                imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://perplexity.ai", pricing = "Freemium", platforms = listOf("Web", "iOS", "Android"),
                 developer = "Perplexity AI Team", company = "Perplexity AI", status = "Popular", launchYear = "2022",
                 tags = listOf("search", "research ai", "citations", "academic", "helper", "perplexity"),
