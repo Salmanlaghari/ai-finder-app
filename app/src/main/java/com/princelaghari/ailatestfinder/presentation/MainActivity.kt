@@ -14,7 +14,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -67,9 +70,24 @@ fun MainScreen(viewModel: HomeViewModel) {
     val aiTools by viewModel.filteredList.collectAsState()
     val suggestions by viewModel.suggestions.collectAsState()
     val favoriteIds by viewModel.favoriteIds.collectAsState()
+    val selectedSortOption by viewModel.selectedSortOption.collectAsState()
 
     // Overlay active selection state
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
+
+    // Lazy list pagination trigger
+    val listState = rememberLazyListState()
+    val shouldLoadMore = remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem != null && lastVisibleItem.index >= listState.layoutInfo.totalItemsCount - 4
+        }
+    }
+    LaunchedEffect(shouldLoadMore.value) {
+        if (shouldLoadMore.value) {
+            viewModel.loadMoreItems()
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -150,6 +168,38 @@ fun MainScreen(viewModel: HomeViewModel) {
                 onCategorySelected = { viewModel.onCategorySelected(it) }
             )
 
+            // Dynamic Sorting Selection Chips (Trending, Newest, Popular, A-Z)
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val sortOptions = listOf("A-Z", "Trending", "Newest", "Popular")
+                items(sortOptions) { option ->
+                    val isSelected = option == selectedSortOption
+                    val background = if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent
+                    val border = if (isSelected) MetallicGold else Color.Gray.copy(alpha = 0.3f)
+                    val textCol = if (isSelected) MetallicGold else Color.Gray
+
+                    Box(
+                        modifier = Modifier
+                            .background(background, RoundedCornerShape(8.dp))
+                            .border(0.5.dp, border, RoundedCornerShape(8.dp))
+                            .clickable { viewModel.onSortOptionSelected(option) }
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = "Sort: $option",
+                            color = textCol,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
             // Main Tools List or Empty State
             Box(
                 modifier = Modifier
@@ -162,21 +212,18 @@ fun MainScreen(viewModel: HomeViewModel) {
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = MetallicGold, strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.height(14.dp))
                             Text(
-                                text = "No tools matched your search",
+                                text = "Loading verified platforms...",
                                 color = Color.Gray,
-                                fontSize = 14.sp
-                            )
-                            Text(
-                                text = "Try clear search filters or explore categories",
-                                color = Color.DarkGray,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(top = 4.dp)
+                                fontSize = 13.sp
                             )
                         }
                     }
                 } else {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {

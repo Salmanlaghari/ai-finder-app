@@ -66,13 +66,11 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
     if (url.isEmpty()) return
     try {
         val builder = CustomTabsIntent.Builder()
-        // Customize tab toolbar color to match ultra-premium black #0A0A0A
         builder.setToolbarColor(android.graphics.Color.parseColor("#0A0A0A"))
         builder.setShowTitle(true)
         val customTabsIntent = builder.build()
         customTabsIntent.launchUrl(context, Uri.parse(url))
     } catch (e: Exception) {
-        // Fallback to standard external browser intent opener
         try {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
             context.startActivity(intent)
@@ -289,6 +287,8 @@ fun AiToolCard(
     onCardClicked: (AiTool) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
+
     // Subtle premium card design
     Card(
         colors = CardDefaults.cardColors(
@@ -311,20 +311,43 @@ fun AiToolCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Elegant circular Image Container with crossfade and metallic gold border
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(tool.imageUrl)
-                    .crossfade(true)
-                    .crossfade(500)
-                    .build(),
-                contentDescription = "${tool.name} preview image",
-                contentScale = ContentScale.Crop,
+            // Elegant circular Image Container with crossfade, fallback, and gold border
+            Box(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(CircleShape)
-                    .border(1.5.dp, MetallicGold, CircleShape)
-            )
+                    .border(1.5.dp, MetallicGold, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!isImageError && tool.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(tool.imageUrl)
+                            .crossfade(true)
+                            .crossfade(500)
+                            .build(),
+                        contentDescription = "${tool.name} logo",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        onError = { isImageError = true }
+                    )
+                } else {
+                    // Premium custom letter emblem fallback
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFF222222)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tool.name.take(1).uppercase(),
+                            color = MetallicGold,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.width(14.dp))
 
@@ -545,6 +568,7 @@ fun AiDetailOverlay(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -601,18 +625,40 @@ fun AiDetailOverlay(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(tool.imageUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = "${tool.name} logo",
-                            contentScale = ContentScale.Crop,
+                        Box(
                             modifier = Modifier
                                 .size(76.dp)
                                 .clip(CircleShape)
-                                .border(2.dp, MetallicGold, CircleShape)
-                        )
+                                .border(2.dp, MetallicGold, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (!isImageError && tool.imageUrl.isNotEmpty()) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(tool.imageUrl)
+                                        .crossfade(true)
+                                        .build(),
+                                    contentDescription = "${tool.name} logo",
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize(),
+                                    onError = { isImageError = true }
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color(0xFF222222)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = tool.name.take(1).uppercase(),
+                                        color = MetallicGold,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 24.sp
+                                    )
+                                }
+                            }
+                        }
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(

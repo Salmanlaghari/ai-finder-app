@@ -45,6 +45,12 @@ class HomeViewModel @Inject constructor(
     private val _selectedCategory = MutableStateFlow("All")
     val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
 
+    private val _selectedSortOption = MutableStateFlow("A-Z")
+    val selectedSortOption: StateFlow<String> = _selectedSortOption.asStateFlow()
+
+    private val _visibleItemLimit = MutableStateFlow(50)
+    val visibleItemLimit: StateFlow<Int> = _visibleItemLimit.asStateFlow()
+
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
@@ -99,8 +105,25 @@ class HomeViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    // Expose filteredList to synchronize with UI state instantly
-    val filteredList: StateFlow<List<AiTool>> = aiTools
+    // Expose filteredList to synchronize with UI state instantly, applying sorting options and pagination limits
+    val filteredList: StateFlow<List<AiTool>> = combine(
+        aiTools,
+        _selectedSortOption,
+        _visibleItemLimit
+    ) { rawList, sortOption, limit ->
+        val sorted = when (sortOption) {
+            "Trending" -> rawList.sortedByDescending { it.status == "Trending" }
+            "Newest" -> rawList.sortedByDescending { it.launchYear }
+            "Popular" -> rawList.sortedByDescending { it.status == "Popular" }
+            "A-Z" -> rawList.sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.name })
+            else -> rawList
+        }
+        sorted.take(limit)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     /**
      * Instantly suggests AI tool names as suggestions based on typed input.
@@ -120,10 +143,22 @@ class HomeViewModel @Inject constructor(
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
+        // Reset limit on search
+        _visibleItemLimit.value = 50
     }
 
     fun onCategorySelected(category: String) {
         _selectedCategory.value = category
+        // Reset limit on category switch
+        _visibleItemLimit.value = 50
+    }
+
+    fun onSortOptionSelected(sortOption: String) {
+        _selectedSortOption.value = sortOption
+    }
+
+    fun loadMoreItems() {
+        _visibleItemLimit.value = _visibleItemLimit.value + 50
     }
 
     fun toggleFavorite(toolId: String) {
