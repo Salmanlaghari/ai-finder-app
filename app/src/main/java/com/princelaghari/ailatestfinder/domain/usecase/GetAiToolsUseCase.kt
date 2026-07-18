@@ -10,19 +10,42 @@ class GetAiToolsUseCase @Inject constructor(
     private val repository: AiToolRepository
 ) {
     /**
-     * Executes the usecase to fetch and filter AI tools.
-     * All search and categorization filters are processed here dynamically.
+     * Executes the usecase to fetch, filter, and perform natural language search on AI tools.
+     * Integrates statuses ("Trending", "New", "Popular") and standard categories ("Text AI", etc.).
      */
     operator fun invoke(query: String = "", category: String = "All"): Flow<List<AiTool>> {
         return repository.getAiTools().map { list ->
             list.filter { tool ->
-                // Apply Category filter
-                val matchesCategory = category == "All" || tool.category.equals(category, ignoreCase = true)
+                // 1. Resolve Category Chips & Status filters
+                val matchesCategory = when (category) {
+                    "All" -> true
+                    "Trending", "New", "Popular" -> tool.status.equals(category, ignoreCase = true)
+                    else -> tool.category.equals(category, ignoreCase = true)
+                }
 
-                // Apply Search/Query filter (matches name or description, case-insensitive)
-                val matchesQuery = query.isEmpty() ||
-                        tool.name.contains(query, ignoreCase = true) ||
-                        tool.description.contains(query, ignoreCase = true)
+                // 2. Resolve Smart Natural Language queries (e.g., "best image ai", "free chatbot")
+                val matchesQuery = if (query.isEmpty()) {
+                    true
+                } else {
+                    val cleanQuery = query.trim().lowercase()
+
+                    // Direct contains checks
+                    val inName = tool.name.lowercase().contains(cleanQuery)
+                    val inDescription = tool.description.lowercase().contains(cleanQuery)
+                    val inDeveloper = tool.developer.lowercase().contains(cleanQuery)
+                    val inCompany = tool.company.lowercase().contains(cleanQuery)
+                    val inTags = tool.tags.any { it.lowercase().contains(cleanQuery) }
+
+                    // Token match for natural language (e.g., matching "assistant" in "coding assistant")
+                    val queryTokens = cleanQuery.split("\\s+".toRegex()).filter { it.length > 2 }
+                    val tokenMatches = queryTokens.isNotEmpty() && queryTokens.all { token ->
+                        tool.name.lowercase().contains(token) ||
+                        tool.description.lowercase().contains(token) ||
+                        tool.tags.any { it.lowercase().contains(token) }
+                    }
+
+                    inName || inDescription || inDeveloper || inCompany || inTags || tokenMatches
+                }
 
                 matchesCategory && matchesQuery
             }

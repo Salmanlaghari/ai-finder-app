@@ -19,6 +19,7 @@ class FirebaseFirestoreRepositoryImpl @Inject constructor() : AiToolRepository {
 
     private val TAG = "FirestoreRepo"
 
+    @Suppress("UNCHECKED_CAST")
     override fun getAiTools(): Flow<List<AiTool>> {
         // Safe access to Firebase Firestore
         val firestore: FirebaseFirestore? = try {
@@ -53,7 +54,33 @@ class FirebaseFirestoreRepositoryImpl @Inject constructor() : AiToolRepository {
                                 val description = doc.getString("description") ?: ""
                                 val imageUrl = doc.getString("imageUrl") ?: ""
                                 val toolUrl = doc.getString("toolUrl") ?: ""
-                                AiTool(id, name, category, description, imageUrl, toolUrl)
+
+                                // Parse expanded premium attributes safely with default fallbacks
+                                val pricing = doc.getString("pricing") ?: "Freemium"
+                                val platforms = (doc.get("platforms") as? List<String>) ?: listOf("Web")
+                                val developer = doc.getString("developer") ?: "AI Community"
+                                val company = doc.getString("company") ?: "AI Corp"
+                                val status = doc.getString("status") ?: "Verified"
+                                val launchYear = doc.getString("launchYear") ?: "2024"
+                                val tags = (doc.get("tags") as? List<String>) ?: emptyList()
+                                val alternatives = (doc.get("alternatives") as? List<String>) ?: emptyList()
+
+                                AiTool(
+                                    id = id,
+                                    name = name,
+                                    category = category,
+                                    description = description,
+                                    imageUrl = imageUrl,
+                                    toolUrl = toolUrl,
+                                    pricing = pricing,
+                                    platforms = platforms,
+                                    developer = developer,
+                                    company = company,
+                                    status = status,
+                                    launchYear = launchYear,
+                                    tags = tags,
+                                    alternatives = alternatives
+                                )
                             } catch (e: Exception) {
                                 Log.e(TAG, "Failed to parse document: ${doc.id}", e)
                                 null

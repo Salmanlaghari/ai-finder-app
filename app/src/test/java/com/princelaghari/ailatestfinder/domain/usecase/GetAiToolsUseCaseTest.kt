@@ -13,9 +13,30 @@ import org.junit.Test
 class GetAiToolsUseCaseTest {
 
     private val testTools = listOf(
-        AiTool("1", "ChatGPT", "Text AI", "Conversational AI model", "", ""),
-        AiTool("2", "Midjourney", "Image AI", "Artistic image generation", "", ""),
-        AiTool("3", "Claude", "Text AI", "Next-gen assistant", "", "")
+        AiTool(
+            id = "1",
+            name = "ChatGPT",
+            category = "Text AI",
+            description = "Conversational AI model",
+            status = "Trending",
+            tags = listOf("free chatbot", "chatbot")
+        ),
+        AiTool(
+            id = "2",
+            name = "Midjourney",
+            category = "Image AI",
+            description = "Artistic image generation",
+            status = "Popular",
+            tags = listOf("logo maker", "best image ai")
+        ),
+        AiTool(
+            id = "3",
+            name = "Claude",
+            category = "Text AI",
+            description = "Next-gen assistant",
+            status = "Trending",
+            tags = listOf("chatbot")
+        )
     )
 
     private val fakeRepository = object : AiToolRepository {
@@ -40,15 +61,22 @@ class GetAiToolsUseCaseTest {
     }
 
     @Test
-    fun `when search query is specified, filters by name or description case insensitively`() = runBlocking {
-        val result = useCase(query = "gpt", category = "All").first()
-        assertEquals(1, result.size)
-        assertEquals("ChatGPT", result[0].name)
+    fun `when status like Trending is selected, returns matching status`() = runBlocking {
+        val result = useCase(query = "", category = "Trending").first()
+        assertEquals(2, result.size)
+        assertTrue(result.all { it.status == "Trending" })
     }
 
     @Test
-    fun `when search query does not match, returns empty list`() = runBlocking {
-        val result = useCase(query = "Sora", category = "All").first()
-        assertTrue(result.isEmpty())
+    fun `when natural language search like logo maker is query, returns correct result`() = runBlocking {
+        val result = useCase(query = "logo maker", category = "All").first()
+        assertEquals(1, result.size)
+        assertEquals("Midjourney", result[0].name)
+    }
+
+    @Test
+    fun `when search query is case-insensitive, filters properly`() = runBlocking {
+        val result = useCase(query = "CHATBOT", category = "All").first()
+        assertEquals(2, result.size)
     }
 }

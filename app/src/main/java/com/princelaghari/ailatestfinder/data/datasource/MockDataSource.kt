@@ -4,110 +4,308 @@ import com.princelaghari.ailatestfinder.domain.model.AiTool
 
 object MockDataSource {
     val aiTools = listOf(
-        // Text AI
+        // Chat AI / Text AI
         AiTool(
-            id = "txt_1",
+            id = "chatgpt",
             name = "ChatGPT",
             category = "Text AI",
             description = "Advanced conversational AI by OpenAI.",
             imageUrl = "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://chatgpt.com"
+            toolUrl = "https://chatgpt.com",
+            pricing = "Freemium",
+            platforms = listOf("Web", "Android", "iOS", "API Available"),
+            developer = "OpenAI Team",
+            company = "OpenAI Inc.",
+            status = "Trending",
+            launchYear = "2022",
+            tags = listOf("chatbot", "chat", "assistant", "writing", "helper", "free chatbot"),
+            alternatives = listOf("Claude 3.5 Sonnet", "Gemini", "Grok")
         ),
         AiTool(
-            id = "txt_2",
+            id = "claude",
             name = "Claude 3.5 Sonnet",
             category = "Text AI",
             description = "State-of-the-art reasoning model by Anthropic.",
             imageUrl = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://claude.ai"
+            toolUrl = "https://claude.ai",
+            pricing = "Freemium",
+            platforms = listOf("Web", "iOS", "Android", "API Available"),
+            developer = "Anthropic Research",
+            company = "Anthropic PBC",
+            status = "Trending",
+            launchYear = "2024",
+            tags = listOf("chatbot", "coding assistant", "reasoning", "writing", "chat", "helper", "free chatbot"),
+            alternatives = listOf("ChatGPT", "Gemini")
         ),
         AiTool(
-            id = "txt_3",
-            name = "GPT-4o",
+            id = "gemini",
+            name = "Gemini",
             category = "Text AI",
-            description = "OpenAI's flagship multimodal model, combining text, vision, and audio capabilities in real-time.",
-            imageUrl = "https://images.unsplash.com/photo-1677442135402-4f0a0d4a5b82?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://openai.com/gpt-4o"
+            description = "Google's flagship multimodal model integrated seamlessly into the Google Workspace ecosystem.",
+            imageUrl = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://gemini.google.com",
+            pricing = "Freemium",
+            platforms = listOf("Web", "Android", "iOS", "API Available"),
+            developer = "Google DeepMind",
+            company = "Alphabet Inc.",
+            status = "Popular",
+            launchYear = "2023",
+            tags = listOf("chatbot", "google ai", "translation", "multimodal", "free chatbot"),
+            alternatives = listOf("ChatGPT", "Claude 3.5 Sonnet")
+        ),
+        AiTool(
+            id = "grok",
+            name = "Grok",
+            category = "Text AI",
+            description = "An AI with real-time access to information via the X (formerly Twitter) platform, designed to answer with wit.",
+            imageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://x.ai",
+            pricing = "Paid",
+            platforms = listOf("Web", "iOS", "Android"),
+            developer = "xAI Team",
+            company = "xAI Corp.",
+            status = "New",
+            launchYear = "2023",
+            tags = listOf("chatbot", "twitter", "realtime", "search"),
+            alternatives = listOf("ChatGPT", "Gemini")
+        ),
+        AiTool(
+            id = "deepseek",
+            name = "DeepSeek",
+            category = "Text AI",
+            description = "High-performance open-source mixture-of-experts language model specializing in coding and advanced math logic.",
+            imageUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://deepseek.com",
+            pricing = "Free",
+            platforms = listOf("Web", "API Available"),
+            developer = "DeepSeek Inc.",
+            company = "DeepSeek Group",
+            status = "New",
+            launchYear = "2024",
+            tags = listOf("chatbot", "coding assistant", "open source", "free chatbot"),
+            alternatives = listOf("ChatGPT", "Claude 3.5 Sonnet")
+        ),
+        AiTool(
+            id = "perplexity",
+            name = "Perplexity",
+            category = "Research",
+            description = "Conversational search engine that provides real-time citations and sources for academic or general queries.",
+            imageUrl = "https://images.unsplash.com/photo-1546074177-ffedd1b72e4c?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://perplexity.ai",
+            pricing = "Freemium",
+            platforms = listOf("Web", "iOS", "Android"),
+            developer = "Perplexity AI Team",
+            company = "Perplexity AI Inc.",
+            status = "Popular",
+            launchYear = "2022",
+            tags = listOf("search", "research ai", "citations", "academic", "helper"),
+            alternatives = listOf("Gemini", "ChatGPT")
         ),
 
         // Image AI
         AiTool(
-            id = "img_1",
+            id = "midjourney",
             name = "Midjourney",
             category = "Image AI",
             description = "Ultra-realistic text-to-image generator.",
             imageUrl = "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://midjourney.com"
+            toolUrl = "https://midjourney.com",
+            pricing = "Paid",
+            platforms = listOf("Web"),
+            developer = "Midjourney Lab",
+            company = "Midjourney Inc.",
+            status = "Trending",
+            launchYear = "2022",
+            tags = listOf("image generator", "art", "design", "logo maker", "best image ai"),
+            alternatives = listOf("DALL-E 3", "Stable Diffusion")
         ),
         AiTool(
-            id = "img_2",
-            name = "Stable Diffusion 3",
+            id = "dalle3",
+            name = "DALL-E 3",
             category = "Image AI",
-            description = "Stability AI's open weights model for realistic image synthesis and prompt adherence.",
-            imageUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://stability.ai"
+            description = "OpenAI's latest text-to-image system producing highly accurate details matching exact text strings.",
+            imageUrl = "https://images.unsplash.com/photo-1544377193-33dcf4d68fb5?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://openai.com/dall-e-3",
+            pricing = "Paid",
+            platforms = listOf("Web", "API Available"),
+            developer = "OpenAI Vision Group",
+            company = "OpenAI Inc.",
+            status = "Popular",
+            launchYear = "2023",
+            tags = listOf("image generator", "logo maker", "illustration", "best image ai"),
+            alternatives = listOf("Midjourney", "Stable Diffusion")
         ),
 
         // Video AI
         AiTool(
-            id = "vid_1",
+            id = "google-veo",
             name = "Google Veo",
             category = "Video AI",
             description = "High-definition generative video model.",
             imageUrl = "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://deepmind.google/technologies/veo"
+            toolUrl = "https://deepmind.google/technologies/veo",
+            pricing = "Paid",
+            platforms = listOf("Web"),
+            developer = "Google DeepMind",
+            company = "Alphabet Inc.",
+            status = "New",
+            launchYear = "2024",
+            tags = listOf("video generator", "google veo", "veo", "cinematic", "video maker"),
+            alternatives = listOf("OpenAI Sora", "Luma Dream Machine")
         ),
         AiTool(
-            id = "vid_2",
+            id = "openai-sora",
             name = "OpenAI Sora",
             category = "Video AI",
             description = "Text-to-video generation model.",
             imageUrl = "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://openai.com/sora"
+            toolUrl = "https://openai.com/sora",
+            pricing = "Paid",
+            platforms = listOf("Web"),
+            developer = "OpenAI Media Lab",
+            company = "OpenAI Inc.",
+            status = "Trending",
+            launchYear = "2024",
+            tags = listOf("video generator", "cinematic", "physics engine", "video maker"),
+            alternatives = listOf("Google Veo", "Luma Dream Machine")
         ),
         AiTool(
-            id = "vid_3",
+            id = "luma",
             name = "Luma Dream Machine",
             category = "Video AI",
             description = "A rapid, cinematic video generator that renders realistic, physically accurate motion.",
             imageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://lumalabs.ai/dream-machine"
+            toolUrl = "https://lumalabs.ai/dream-machine",
+            pricing = "Freemium",
+            platforms = listOf("Web", "API Available"),
+            developer = "Luma Lab",
+            company = "Luma Labs Inc.",
+            status = "Trending",
+            launchYear = "2024",
+            tags = listOf("video generator", "3d motion", "animation", "video maker"),
+            alternatives = listOf("OpenAI Sora", "Google Veo")
+        ),
+
+        // Music AI / Audio AI
+        AiTool(
+            id = "suno",
+            name = "Suno AI",
+            category = "Music AI",
+            description = "An ultra-premium AI music studio that crafts professional vocal tracks, lyrics, and instrumentals.",
+            imageUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://suno.com",
+            pricing = "Freemium",
+            platforms = listOf("Web", "iOS"),
+            developer = "Suno Creators",
+            company = "Suno Inc.",
+            status = "Trending",
+            launchYear = "2023",
+            tags = listOf("music generator", "song maker", "lyrics writer", "instrumental"),
+            alternatives = listOf("Udio", "ElevenLabs")
+        ),
+        AiTool(
+            id = "elevenlabs",
+            name = "ElevenLabs",
+            category = "Audio AI",
+            description = "Advanced AI voice generator specializing in natural text-to-speech, dubbing, and voice cloning.",
+            imageUrl = "https://images.unsplash.com/photo-1484755560695-a4cfde12d207?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://elevenlabs.io",
+            pricing = "Freemium",
+            platforms = listOf("Web", "iOS", "API Available"),
+            developer = "ElevenLabs Team",
+            company = "ElevenLabs Inc.",
+            status = "Popular",
+            launchYear = "2023",
+            tags = listOf("voice ai", "voice clone", "dubbing", "speech generator"),
+            alternatives = listOf("Suno AI")
         ),
 
         // Coding AI
         AiTool(
-            id = "code_1",
+            id = "copilot",
             name = "GitHub Copilot",
             category = "Coding AI",
             description = "AI pair programmer.",
             imageUrl = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://github.com/features/copilot"
+            toolUrl = "https://github.com/features/copilot",
+            pricing = "Paid",
+            platforms = listOf("Web", "Android", "iOS", "API Available"),
+            developer = "GitHub & OpenAI",
+            company = "Microsoft Corporation",
+            status = "Popular",
+            launchYear = "2021",
+            tags = listOf("coding assistant", "programming", "autocomplete", "vscode"),
+            alternatives = listOf("Cursor AI", "Tabnine")
         ),
         AiTool(
-            id = "code_2",
+            id = "cursor",
             name = "Cursor AI",
             category = "Coding AI",
-            description = "A powerful, native VS Code fork integrated with conversational LLMs to generate code in context.",
+            description = "Sleek, next-generation code editor built as a native VS Code fork with deep local AI indexing.",
             imageUrl = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://cursor.sh"
+            toolUrl = "https://cursor.sh",
+            pricing = "Freemium",
+            platforms = listOf("Web", "Android", "iOS"),
+            developer = "Anysphere",
+            company = "Anysphere Inc.",
+            status = "Trending",
+            launchYear = "2023",
+            tags = listOf("coding assistant", "ide", "vscode fork", "programming"),
+            alternatives = listOf("GitHub Copilot", "Tabnine")
         ),
 
-        // Audio Tools
+        // Agents
         AiTool(
-            id = "aud_1",
-            name = "Suno AI",
-            category = "Audio Tools",
-            description = "An ultra-premium AI music studio that crafts professional vocal tracks, lyrics, and instrumentals.",
-            imageUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://suno.com"
+            id = "crewai",
+            name = "CrewAI",
+            category = "Agents",
+            description = "Framework for orchestrating role-playing, autonomous AI agents to build multi-agent automation workflows.",
+            imageUrl = "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://crewai.com",
+            pricing = "Free",
+            platforms = listOf("Web", "API Available"),
+            developer = "CrewAI Team",
+            company = "CrewAI Inc.",
+            status = "New",
+            launchYear = "2024",
+            tags = listOf("agents", "multi agent", "autonomous", "orchestration"),
+            alternatives = listOf("AutoGPT")
         ),
+
+        // Business / Finance
         AiTool(
-            id = "aud_2",
-            name = "ElevenLabs",
-            category = "Audio Tools",
-            description = "The most realistic AI voice generator and text-to-speech engine supporting voice cloning.",
-            imageUrl = "https://images.unsplash.com/photo-1484755560695-a4cfde12d207?auto=format&fit=crop&w=300&q=80",
-            toolUrl = "https://elevenlabs.io"
+            id = "stripe-sigma",
+            name = "Stripe Sigma",
+            category = "Finance",
+            description = "AI-powered SQL analysis to query payment records, merchant sales, and corporate transactions instantly.",
+            imageUrl = "https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://stripe.com/sigma",
+            pricing = "Paid",
+            platforms = listOf("Web"),
+            developer = "Stripe Engineers",
+            company = "Stripe Inc.",
+            status = "Verified",
+            launchYear = "2023",
+            tags = listOf("finance ai", "payment intelligence", "business intelligence"),
+            alternatives = listOf("Plad")
+        ),
+
+        // Marketing / Design
+        AiTool(
+            id = "canva-magic",
+            name = "Canva Magic Design",
+            category = "Design",
+            description = "Visual layout and presentation design engine powered by custom diffusion models.",
+            imageUrl = "https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&w=300&q=80",
+            toolUrl = "https://canva.com",
+            pricing = "Freemium",
+            platforms = listOf("Web", "Android", "iOS"),
+            developer = "Canva AI Lab",
+            company = "Canva Pty Ltd.",
+            status = "Popular",
+            launchYear = "2023",
+            tags = listOf("design ai", "presentation maker", "logo maker", "graphics designer"),
+            alternatives = listOf("Midjourney", "Adobe Firefly")
         )
     )
 }

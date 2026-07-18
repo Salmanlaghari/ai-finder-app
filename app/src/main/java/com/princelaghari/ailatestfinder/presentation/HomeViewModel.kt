@@ -10,6 +10,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.domain.usecase.GetAiToolsUseCase
+import com.princelaghari.ailatestfinder.presentation.ads.AdManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,9 +28,11 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     application: Application,
-    private val getAiToolsUseCase: GetAiToolsUseCase
+    private val getAiToolsUseCase: GetAiToolsUseCase,
+    private val adManager: AdManager
 ) : AndroidViewModel(application) {
 
+    private val prefs = application.getSharedPreferences("ai_latest_finder_prefs", Context.MODE_PRIVATE)
     private val connectivityManager =
         application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
@@ -44,7 +48,14 @@ class HomeViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    // Register Network Callback
+    // Interactive States: Favorites & Recently Viewed
+    private val _favoriteIds = MutableStateFlow<Set<String>>(emptySet())
+    val favoriteIds: StateFlow<Set<String>> = _favoriteIds.asStateFlow()
+
+    private val _recentlyViewedIds = MutableStateFlow<List<String>>(emptyList())
+    val recentlyViewedIds: StateFlow<List<String>> = _recentlyViewedIds.asStateFlow()
+
+    // Network Callbacks
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             _isNetworkAvailable.value = true
@@ -56,15 +67,20 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+        // Initialize AdManager SDK
+        adManager.initialize(application)
+
+        // Load Persistent Favorites and History
+        _favoriteIds.value = prefs.getStringSet("favorites", emptySet()) ?: emptySet()
+        _recentlyViewedIds.value = prefs.getString("recently_viewed", "")?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+
         // Initial network check
         _isNetworkAvailable.value = isCurrentlyConnected()
-        // Register for real-time network changes
         try {
             val builder = NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             connectivityManager.registerNetworkCallback(builder.build(), networkCallback)
         } catch (e: Exception) {
-            // Safe fallback if permission or system registry fails
             _isNetworkAvailable.value = true
         }
     }
@@ -83,8 +99,24 @@ class HomeViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
-    // Explicitly expose filteredList to synchronize instantly with the UI state
+    // Expose filteredList to synchronize with UI state instantly
     val filteredList: StateFlow<List<AiTool>> = aiTools
+
+    /**
+     * Instantly suggests AI tool names as suggestions based on typed input.
+     */
+    val suggestions: StateFlow<List<String>> = _searchQuery.map { query ->
+        if (query.trim().length < 2) emptyList()
+        else {
+            val lcQuery = query.lowercase().trim()
+            val masterList = listOf("ChatGPT", "Claude 3.5 Sonnet", "Gemini", "Grok", "DeepSeek", "Perplexity", "Mistral", "Qwen", "Midjourney", "Google Veo", "OpenAI Sora", "Luma Dream Machine", "Suno AI", "GitHub Copilot", "Cursor AI")
+            masterList.filter { it.lowercase().contains(lcQuery) }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
@@ -94,10 +126,31 @@ class HomeViewModel @Inject constructor(
         _selectedCategory.value = category
     }
 
+    fun toggleFavorite(toolId: String) {
+        val current = _favoriteIds.value.toMutableSet()
+        if (current.contains(toolId)) {
+            current.remove(toolId)
+        } else {
+            current.add(toolId)
+        }
+        _favoriteIds.value = current
+        prefs.edit().putStringSet("favorites", current).apply()
+    }
+
+    fun addToRecentlyViewed(toolId: String) {
+        val current = _recentlyViewedIds.value.toMutableList()
+        current.remove(toolId) // Avoid duplicates in history list
+        current.add(0, toolId) // Insert at top of history
+        if (current.size > 10) {
+            current.removeAt(current.size - 1) // Keep top 10 items
+        }
+        _recentlyViewedIds.value = current
+        prefs.edit().putString("recently_viewed", current.joinToString(",")).apply()
+    }
+
     fun retryConnection() {
         _isRefreshing.value = true
         _isNetworkAvailable.value = isCurrentlyConnected()
-        // Simulate minor animation delay for premium feel
         viewModelScope.launch {
             delay(800)
             _isRefreshing.value = false
@@ -119,7 +172,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // Helper to run coroutines easily
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }
     }

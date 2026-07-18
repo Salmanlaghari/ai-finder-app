@@ -1,7 +1,12 @@
 package com.princelaghari.ailatestfinder.presentation.components
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -9,14 +14,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,9 +44,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.android.gms.ads.AdRequest
@@ -45,6 +58,29 @@ import com.google.android.gms.ads.AdView
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.presentation.theme.MetallicGold
 import com.princelaghari.ailatestfinder.presentation.theme.PaleGold
+
+/**
+ * Custom helper to open URLs cleanly in Chrome Custom Tabs, with safe external browser fallback.
+ */
+fun openUrlWithChromeCustomTabs(context: Context, url: String) {
+    if (url.isEmpty()) return
+    try {
+        val builder = CustomTabsIntent.Builder()
+        // Customize tab toolbar color to match ultra-premium black #0A0A0A
+        builder.setToolbarColor(android.graphics.Color.parseColor("#0A0A0A"))
+        builder.setShowTitle(true)
+        val customTabsIntent = builder.build()
+        customTabsIntent.launchUrl(context, Uri.parse(url))
+    } catch (e: Exception) {
+        // Fallback to standard external browser intent opener
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            context.startActivity(intent)
+        } catch (ex: Exception) {
+            Toast.makeText(context, "Could not open link", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
 
 /**
  * ShimmerBrandingText displays "Created by Prince Laghari" right underneath the search or greeting panel,
@@ -196,7 +232,12 @@ fun CategoryChips(
     onCategorySelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categories = listOf("All", "Text AI", "Image AI", "Video AI", "Coding AI", "Audio Tools")
+    val categories = listOf(
+        "All", "Trending", "New", "Popular", "Text AI", "Image AI", "Video AI",
+        "Audio AI", "Music AI", "Coding AI", "Agents", "Business", "Marketing",
+        "Research", "Medical", "Finance", "Legal", "Education", "PDF",
+        "Productivity", "Design", "3D", "Gaming", "Open Source"
+    )
 
     LazyRow(
         modifier = modifier
@@ -245,10 +286,9 @@ fun CategoryChips(
 @Composable
 fun AiToolCard(
     tool: AiTool,
+    onCardClicked: (AiTool) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     // Subtle premium card design
     Card(
         colors = CardDefaults.cardColors(
@@ -263,12 +303,7 @@ fun AiToolCard(
                 color = MetallicGold.copy(alpha = 0.15f),
                 shape = RoundedCornerShape(18.dp)
             )
-            .clickable {
-                if (tool.toolUrl.isNotEmpty()) {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(tool.toolUrl))
-                    context.startActivity(intent)
-                }
-            }
+            .clickable { onCardClicked(tool) }
     ) {
         Row(
             modifier = Modifier
@@ -307,7 +342,10 @@ fun AiToolCard(
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
-                        letterSpacing = 0.2.sp
+                        letterSpacing = 0.2.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f).padding(end = 6.dp)
                     )
                     // Category Badge in Metallic Gold
                     Box(
@@ -332,7 +370,8 @@ fun AiToolCard(
                     color = Color.LightGray.copy(alpha = 0.85f),
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
-                    maxLines = 2
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -359,8 +398,7 @@ fun BuyMeACoffeeWidget(modifier: Modifier = Modifier) {
                 shape = RoundedCornerShape(14.dp)
             )
             .clickable {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buymeacoffee.com/princelaghari"))
-                context.startActivity(intent)
+                openUrlWithChromeCustomTabs(context, "https://buymeacoffee.com/princelaghari")
             }
     ) {
         Row(
@@ -490,6 +528,282 @@ fun NetworkErrorScreen(
                     fontSize = 12.sp,
                     letterSpacing = 1.2.sp
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Premium detailed modal popup of selected AI tools. Shows full launch metadata, developers,
+ * companies, platforms, pricing, alternatives, and actions (share, favorite, copy, Chrome custom tabs website opener).
+ */
+@Composable
+fun AiDetailOverlay(
+    tool: AiTool,
+    isFavorite: Boolean,
+    onToggleFavorite: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xEE050505)) // Beautiful glassmorphic dim background overlay
+                .clickable { onDismiss() },
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .fillMaxHeight(0.85f)
+                    .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
+                    .clickable(enabled = false) {} // Prevent dismiss on self clicks
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(20.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    // Header Area
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "AI DISCOVERY DETAILED PORTAL",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MetallicGold,
+                            letterSpacing = 1.5.sp
+                        )
+                        IconButton(onClick = onDismiss) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close overlay",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Tool identity (Logo, Name, Developer, Company)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(tool.imageUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "${tool.name} logo",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(76.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, MetallicGold, CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = tool.name,
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 0.5.sp
+                            )
+                            Text(
+                                text = "Developer: ${tool.developer}",
+                                color = Color.LightGray.copy(alpha = 0.8f),
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                            Text(
+                                text = "Company: ${tool.company}",
+                                color = Color.Gray,
+                                fontSize = 11.sp,
+                                modifier = Modifier.padding(top = 1.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Row showing Status, Pricing, Launch Year
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Pricing Badge
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "PRICING", color = Color.Gray, fontSize = 9.sp)
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .background(MetallicGold.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
+                                    .border(0.5.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                            ) {
+                                Text(text = tool.pricing, color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        // Launch Year
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "LAUNCH YEAR", color = Color.Gray, fontSize = 9.sp)
+                            Text(text = tool.launchYear, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                        }
+
+                        // Status Badge
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "STATUS", color = Color.Gray, fontSize = 9.sp)
+                            Box(
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .background(Color(0xFF0F2C10), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                            ) {
+                                Text(text = tool.status, color = Color.Green, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Platforms
+                    Text(text = "COMPATIBLE PLATFORMS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 6.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        tool.platforms.forEach { platform ->
+                            Box(
+                                modifier = Modifier
+                                    .background(Color(0xFF222222), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(text = platform, color = Color.White, fontSize = 11.sp)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // Description
+                    Text(text = "DESCRIPTION", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = tool.description,
+                        color = Color.LightGray,
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // Quick Interactive Actions (Copy link, Share, Favorite)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Favorite
+                        IconButton(onClick = onToggleFavorite) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Favorite Toggle",
+                                tint = if (isFavorite) Color.Red else MetallicGold
+                            )
+                        }
+
+                        // Share
+                        IconButton(onClick = {
+                            try {
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_SUBJECT, "Check out this amazing AI tool!")
+                                    putExtra(Intent.EXTRA_TEXT, "Look at ${tool.name}: ${tool.description}. Explore it here: ${tool.toolUrl}")
+                                }
+                                context.startActivity(Intent.createChooser(intent, "Share AI Tool"))
+                            } catch (e: Exception) {
+                                // fallback ignore
+                            }
+                        }) {
+                            Icon(imageVector = Icons.Default.Share, contentDescription = "Share", tint = MetallicGold)
+                        }
+
+                        // Copy Link
+                        Button(
+                            onClick = {
+                                try {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                    val clip = ClipData.newPlainText("AI Tool Link", tool.toolUrl)
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "Copied link to clipboard!", Toast.LENGTH_SHORT).show()
+                                } catch (e: Exception) {
+                                    // fallback ignore
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(text = "COPY LINK", color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Primary Official Website custom tab button
+                    Button(
+                        onClick = { openUrlWithChromeCustomTabs(context, tool.toolUrl) },
+                        colors = ButtonDefaults.buttonColors(containerColor = MetallicGold),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "OPEN OFFICIAL WEBSITE",
+                            color = Color.Black,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 12.sp,
+                            letterSpacing = 1.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Alternatives / Related AI
+                    if (tool.alternatives.isNotEmpty()) {
+                        Text(text = "SIMILAR PLATFORMS / ALTERNATIVES", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            tool.alternatives.forEach { altName ->
+                                Box(
+                                    modifier = Modifier
+                                        .background(MetallicGold.copy(alpha = 0.08f), RoundedCornerShape(8.dp))
+                                        .border(0.5.dp, MetallicGold.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                ) {
+                                    Text(text = altName, color = PaleGold, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
