@@ -21,9 +21,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,19 +73,42 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainScreen(viewModel: HomeViewModel) {
+    val context = LocalContext.current
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val aiTools by viewModel.filteredList.collectAsState()
     val suggestions by viewModel.suggestions.collectAsState()
     val favoriteIds by viewModel.favoriteIds.collectAsState()
+    val recentlyViewedIds by viewModel.recentlyViewedIds.collectAsState()
     val selectedSortOption by viewModel.selectedSortOption.collectAsState()
 
     // Left Navigation Drawer State
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    // Navigation Active Mode State
+    var activeViewMode by remember { mutableStateOf("Home") }
+
+    // External Search Panel State
+    var showExternalSearchPanel by remember { mutableStateOf(false) }
+
     // Overlay active selection state
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
+
+    // Dynamically filter active list on Drawer clicks
+    val activeList = remember(aiTools, activeViewMode, favoriteIds, recentlyViewedIds) {
+        when (activeViewMode) {
+            "Favorites" -> aiTools.filter { favoriteIds.contains(it.id) }
+            "History" -> {
+                val historyList = mutableListOf<AiTool>()
+                recentlyViewedIds.forEach { id ->
+                    aiTools.find { it.id == id }?.let { historyList.add(it) }
+                }
+                historyList
+            }
+            else -> aiTools
+        }
+    }
 
     // Lazy list pagination trigger
     val listState = rememberLazyListState()
@@ -143,6 +168,12 @@ fun MainScreen(viewModel: HomeViewModel) {
                 )
 
                 menuItems.forEach { (title, subtitle) ->
+                    val isCurrentSelection = when (title) {
+                        "Home" -> activeViewMode == "Home"
+                        "AI History" -> activeViewMode == "History"
+                        "Favorites" -> activeViewMode == "Favorites"
+                        else -> false
+                    }
                     NavigationDrawerItem(
                         label = {
                             Column {
@@ -150,7 +181,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                     text = title,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (title == "Home") MetallicGold else Color.White
+                                    color = if (isCurrentSelection) MetallicGold else Color.White
                                 )
                                 Text(
                                     text = subtitle,
@@ -159,11 +190,30 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 )
                             }
                         },
-                        selected = false,
+                        selected = isCurrentSelection,
                         onClick = {
                             scope.launch { drawerState.close() }
+                            when (title) {
+                                "Home" -> activeViewMode = "Home"
+                                "AI History" -> activeViewMode = "History"
+                                "Favorites" -> activeViewMode = "Favorites"
+                                "Categories" -> {
+                                    activeViewMode = "Home"
+                                    viewModel.onCategorySelected("All")
+                                }
+                                "Settings" -> {
+                                    Toast.makeText(context, "Settings panel ready for customized profiles.", Toast.LENGTH_SHORT).show()
+                                }
+                                "About" -> {
+                                    Toast.makeText(context, "Ai Latest Finder v1.0.2 - Premium Directory curated by Prince Laghari.", Toast.LENGTH_LONG).show()
+                                }
+                                "Privacy Policy" -> {
+                                    openUrlWithChromeCustomTabs(context, "https://google.com/search?q=Ai+Latest+Finder+Privacy+Policy")
+                                }
+                            }
                         },
                         colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = MetallicGold.copy(alpha = 0.1f),
                             unselectedContainerColor = Color.Transparent
                         ),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -228,7 +278,8 @@ fun MainScreen(viewModel: HomeViewModel) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 PulsingSearchBox(
                     query = searchQuery,
-                    onQueryChanged = { viewModel.onSearchQueryChanged(it) }
+                    onQueryChanged = { viewModel.onSearchQueryChanged(it) },
+                    onExternalSearchClicked = { showExternalSearchPanel = true }
                 )
             }
 
@@ -326,7 +377,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                if (aiTools.isEmpty() && searchQuery.isEmpty()) {
+                if (activeList.isEmpty() && searchQuery.isEmpty()) {
                     // Show flagship-grade loading experience with progress indicator & shimmer list
                     Column(modifier = Modifier.fillMaxSize()) {
                         Row(
@@ -358,7 +409,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                             }
                         }
                     }
-                } else if (aiTools.isEmpty()) {
+                } else if (activeList.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -384,7 +435,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                         contentPadding = PaddingValues(bottom = 80.dp)
                     ) {
                         itemsIndexed(
-                            items = aiTools,
+                            items = activeList,
                             key = { _, tool -> tool.id }
                         ) { index, tool ->
                             Column(modifier = Modifier.fillMaxWidth()) {
@@ -426,6 +477,13 @@ fun MainScreen(viewModel: HomeViewModel) {
                 isFavorite = favoriteIds.contains(tool.id),
                 onToggleFavorite = { viewModel.toggleFavorite(tool.id) },
                 onDismiss = { selectedToolForDetail = null }
+            )
+        }
+
+        if (showExternalSearchPanel) {
+            ExternalSearchDialog(
+                query = searchQuery,
+                onDismiss = { showExternalSearchPanel = false }
             )
         }
     }

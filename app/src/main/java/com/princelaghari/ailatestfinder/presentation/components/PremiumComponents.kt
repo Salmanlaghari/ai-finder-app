@@ -87,6 +87,106 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
 }
 
 /**
+ * Elegant modal dialog allowing users to perform an optional external query search
+ * across major international search providers inside Chrome Custom Tabs.
+ */
+@Composable
+fun ExternalSearchDialog(
+    query: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val cleanQuery = query.trim()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "ADVANCED EXTERNAL ENGINE PORTAL",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MetallicGold,
+                    letterSpacing = 1.2.sp
+                )
+                Spacer(modifier = Modifier.height(14.dp))
+                Text(
+                    text = if (cleanQuery.isEmpty()) "Search External Web Providers" else "Search Web for \"$cleanQuery\"",
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+
+                val providers = listOf(
+                    Triple("Google", "https://www.google.com/search?q=", Color(0xFF4285F4)),
+                    Triple("Bing", "https://www.bing.com/search?q=", Color(0xFF00A4EF)),
+                    Triple("DuckDuckGo", "https://duckduckgo.com/?q=", Color(0xFFDE5833)),
+                    Triple("Brave", "https://search.brave.com/search?q=", Color(0xFFFB542B)),
+                    Triple("Perplexity", "https://www.perplexity.ai/search?q=", MetallicGold),
+                    Triple("Kagi", "https://kagi.com/search?q=", Color(0xFFFF6600)),
+                    Triple("You.com", "https://you.com/search?q=", Color(0xFF00D1FF)),
+                    Triple("Yahoo", "https://search.yahoo.com/search?p=", Color(0xFF6001D2)),
+                    Triple("Yandex", "https://yandex.com/search/?text=", Color(0xFFFFCC00)),
+                    Triple("Ecosia", "https://www.ecosia.org/search?q=", Color(0xFF00B050))
+                )
+
+                // Layout search buttons in elegant 2-column grid
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val rows = providers.chunked(2)
+                    rows.forEach { rowItems ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            rowItems.forEach { (name, baseUrl, brandColor) ->
+                                Button(
+                                    onClick = {
+                                        val encodedQuery = Uri.encode(cleanQuery)
+                                        openUrlWithChromeCustomTabs(context, "$baseUrl$encodedQuery")
+                                        onDismiss()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E1E1E)),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .border(0.5.dp, brandColor.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                ) {
+                                    Text(
+                                        text = name,
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                TextButton(onClick = onDismiss) {
+                    Text(text = "CANCEL", color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+/**
  * A breathtaking premium dark-and-gold shimmering splash screen.
  * Displays during instant startup preloading to completely eliminate any blank/black screens.
  */
@@ -358,6 +458,7 @@ fun ShimmerBrandingText(modifier: Modifier = Modifier) {
 fun PulsingSearchBox(
     query: String,
     onQueryChanged: (String) -> Unit,
+    onExternalSearchClicked: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
@@ -431,7 +532,27 @@ fun PulsingSearchBox(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            IconButton(
+                onClick = onExternalSearchClicked,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(Color.White.copy(alpha = 0.08f), CircleShape)
+                        .border(0.5.dp, MetallicGold.copy(alpha = 0.5f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "G",
+                        color = MetallicGold,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 11.sp
+                    )
+                }
+            }
             if (query.isNotEmpty()) {
+                Spacer(modifier = Modifier.width(6.dp))
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Clear Search",
