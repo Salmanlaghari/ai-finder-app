@@ -162,6 +162,18 @@ fun MainScreen(viewModel: HomeViewModel) {
             // Shimmering Branding Line directly below Search View
             ShimmerBrandingText()
 
+            // Small premium administrative text right above Category Chips
+            Text(
+                text = "Prince Laghari • Admin",
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = MetallicGold.copy(alpha = 0.7f),
+                letterSpacing = 1.2.sp,
+                modifier = Modifier
+                    .padding(top = 2.dp, bottom = 4.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+
             // Horizontal Category Chips
             CategoryChips(
                 selectedCategory = selectedCategory,

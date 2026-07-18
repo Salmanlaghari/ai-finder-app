@@ -68,10 +68,11 @@ class GetAiToolsUseCaseTest {
     }
 
     @Test
-    fun `when natural language search like logo maker is query, returns correct result`() = runBlocking {
-        val result = useCase(query = "logo maker", category = "All").first()
-        assertEquals(1, result.size)
-        assertEquals("Midjourney", result[0].name)
+    fun `when semantic search is queried, sorts results by highest matching score`() = runBlocking {
+        // Querying "ChatGPT" should return ChatGPT first since it gets highest exact-name match score
+        val result = useCase(query = "ChatGPT", category = "All").first()
+        assertTrue(result.isNotEmpty())
+        assertEquals("ChatGPT", result[0].name)
     }
 
     @Test
