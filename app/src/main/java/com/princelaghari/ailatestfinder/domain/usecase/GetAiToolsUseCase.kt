@@ -16,11 +16,17 @@ class GetAiToolsUseCase @Inject constructor(
     operator fun invoke(query: String = "", category: String = "All"): Flow<List<AiTool>> {
         return repository.getAiTools().map { list ->
             list.filter { tool ->
-                // 1. Resolve Category Chips & Status filters
-                val matchesCategory = when (category) {
-                    "All" -> true
-                    "Trending", "New", "Popular" -> tool.status.equals(category, ignoreCase = true)
-                    else -> tool.category.equals(category, ignoreCase = true)
+                // 1. Resolve Category Chips & Status filters.
+                // Critical Fix: If a user is actively searching (query is not empty),
+                // we bypass category filters so the search queries the ENTIRE database as requested!
+                val matchesCategory = if (query.isNotEmpty()) {
+                    true
+                } else {
+                    when (category) {
+                        "All" -> true
+                        "Trending", "New", "Popular" -> tool.status.equals(category, ignoreCase = true)
+                        else -> tool.category.equals(category, ignoreCase = true)
+                    }
                 }
 
                 // 2. Resolve Smart Natural Language queries with Typo Tolerance
