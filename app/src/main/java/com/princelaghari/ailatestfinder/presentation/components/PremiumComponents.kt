@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -22,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -239,7 +240,7 @@ fun CategoryChips(
 
 /**
  * Custom card for AI tools, designed using a sleek glassmorphic container,
- * image loader, action triggers, and subtle entry fade-in animation.
+ * image loader with fade-in crossfade, action triggers, and subtle entry fade-in animation.
  */
 @Composable
 fun AiToolCard(
@@ -275,15 +276,19 @@ fun AiToolCard(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Elegant Image Container with subtle rounded border
+            // Elegant circular Image Container with crossfade and metallic gold border
             AsyncImage(
-                model = tool.imageUrl,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(tool.imageUrl)
+                    .crossfade(true)
+                    .crossfade(500)
+                    .build(),
                 contentDescription = "${tool.name} preview image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(76.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, MetallicGold.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .border(1.5.dp, MetallicGold, CircleShape)
             )
 
             Spacer(modifier = Modifier.width(14.dp))

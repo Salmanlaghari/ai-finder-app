@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen(viewModel: HomeViewModel) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val aiTools by viewModel.aiTools.collectAsState()
+    val aiTools by viewModel.filteredList.collectAsState() // Explicitly collect from optimized filteredList flow
 
     Column(
         modifier = Modifier

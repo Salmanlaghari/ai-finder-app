@@ -83,6 +83,9 @@ class HomeViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
+    // Explicitly expose filteredList to synchronize instantly with the UI state
+    val filteredList: StateFlow<List<AiTool>> = aiTools
+
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
     }
