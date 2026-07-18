@@ -31,20 +31,26 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -78,6 +84,145 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
             Toast.makeText(context, "Could not open link", Toast.LENGTH_SHORT).show()
         }
     }
+}
+
+/**
+ * Shimmer modifier for premium loading/skeleton states.
+ */
+fun Modifier.shimmerEffect(): Modifier = composed {
+    var size by remember { mutableStateOf(IntSize.Zero) }
+    val transition = rememberInfiniteTransition(label = "shimmerTransition")
+    val startOffsetX by transition.animateFloat(
+        initialValue = -2f * size.width.toFloat(),
+        targetValue = 2f * size.width.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmerOffset"
+    )
+
+    background(
+        brush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFF141414),
+                Color(0xFF2C2C2C),
+                Color(0xFF141414)
+            ),
+            start = Offset(startOffsetX, 0f),
+            end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
+        )
+    ).onGloballyPositioned {
+        size = it.size
+    }
+}
+
+/**
+ * Shimmer skeleton placeholder for loading/syncing cards.
+ */
+@Composable
+fun AiToolCardSkeleton() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        shape = RoundedCornerShape(18.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .border(
+                width = 0.5.dp,
+                color = MetallicGold.copy(alpha = 0.08f),
+                shape = RoundedCornerShape(18.dp)
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .shimmerEffect()
+            )
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(0.4f)
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .shimmerEffect()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(60.dp)
+                            .height(18.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .shimmerEffect()
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(14.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .shimmerEffect()
+                )
+            }
+        }
+    }
+}
+
+/**
+ * HighlightedText renders text and highlights query matches dynamically in Metallic Gold.
+ */
+@Composable
+fun HighlightedText(
+    text: String,
+    query: String,
+    style: TextStyle,
+    modifier: Modifier = Modifier,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip
+) {
+    if (query.isEmpty() || !text.lowercase().contains(query.lowercase())) {
+        Text(text = text, style = style, modifier = modifier, maxLines = maxLines, overflow = overflow)
+        return
+    }
+
+    val annotatedString = buildAnnotatedString {
+        var start = 0
+        val lowerText = text.lowercase()
+        val lowerQuery = query.lowercase()
+
+        while (true) {
+            val index = lowerText.indexOf(lowerQuery, start)
+            if (index == -1) {
+                append(text.substring(start))
+                break
+            }
+            append(text.substring(start, index))
+            pushStyle(SpanStyle(color = MetallicGold, fontWeight = FontWeight.Bold))
+            append(text.substring(index, index + query.length))
+            pop()
+            start = index + query.length
+        }
+    }
+
+    Text(
+        text = annotatedString,
+        style = style,
+        modifier = modifier,
+        maxLines = maxLines,
+        overflow = overflow
+    )
 }
 
 /**
@@ -285,6 +430,7 @@ fun CategoryChips(
 fun AiToolCard(
     tool: AiTool,
     onCardClicked: (AiTool) -> Unit,
+    searchQuery: String = "",
     modifier: Modifier = Modifier
 ) {
     var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
@@ -360,12 +506,16 @@ fun AiToolCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
+                    // Title with Search Highlight
+                    HighlightedText(
                         text = tool.name,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                        letterSpacing = 0.2.sp,
+                        query = searchQuery,
+                        style = TextStyle(
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            letterSpacing = 0.2.sp
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f).padding(end = 6.dp)
@@ -388,11 +538,15 @@ fun AiToolCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                Text(
+                // Description with Search Highlight
+                HighlightedText(
                     text = tool.description,
-                    color = Color.LightGray.copy(alpha = 0.85f),
-                    fontSize = 12.sp,
-                    lineHeight = 16.sp,
+                    query = searchQuery,
+                    style = TextStyle(
+                        color = Color.LightGray.copy(alpha = 0.85f),
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp
+                    ),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -465,7 +619,6 @@ fun AdBanner(modifier: Modifier = Modifier) {
             factory = { context ->
                 AdView(context).apply {
                     setAdSize(AdSize.BANNER)
-                    // Standard AdMob Test Banner Unit ID
                     adUnitId = "ca-app-pub-3940256099942544/6300978111"
                     loadAd(AdRequest.Builder().build())
                 }
@@ -823,7 +976,7 @@ fun AiDetailOverlay(
                             color = Color.Black,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 12.sp,
-                            letterSpacing = 1.sp
+                            letterSpacing = 1.1.sp
                         )
                     }
 

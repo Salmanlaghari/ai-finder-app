@@ -206,18 +206,29 @@ fun MainScreen(viewModel: HomeViewModel) {
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                if (aiTools.isEmpty()) {
+                if (aiTools.isEmpty() && searchQuery.isEmpty()) {
+                    // Show smooth, high-end shimmer skeleton loaders while database is indexing/syncing
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(5) {
+                            AiToolCardSkeleton()
+                        }
+                    }
+                } else if (aiTools.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(color = MetallicGold, strokeWidth = 2.dp)
-                            Spacer(modifier = Modifier.height(14.dp))
                             Text(
-                                text = "Loading verified platforms...",
+                                text = "No tools matched your search",
                                 color = Color.Gray,
-                                fontSize = 13.sp
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = "Try clear search filters or explore categories",
+                                color = Color.DarkGray,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                         }
                     }
@@ -243,6 +254,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 ) {
                                     AiToolCard(
                                         tool = tool,
+                                        searchQuery = searchQuery, // Pass searchQuery to highlight matches
                                         onCardClicked = { selectedTool ->
                                             viewModel.addToRecentlyViewed(selectedTool.id)
                                             selectedToolForDetail = selectedTool

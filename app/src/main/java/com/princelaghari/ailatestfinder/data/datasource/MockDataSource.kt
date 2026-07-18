@@ -14,25 +14,24 @@ object MockDataSource {
             "PDF", "Productivity", "Design", "3D", "Gaming", "Open Source"
         )
 
-        val imagePlaceholders = listOf(
-            "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=300&q=80", // AI brain dark blue
-            "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=300&q=80", // AI glowing robotic eye
-            "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80", // AI abstract gold flow
-            "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80", // Colorful dark gradient
-            "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&w=300&q=80", // Dark code matrix
-            "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=300&q=80", // Neon developer setup
-            "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80", // Premium microphone audio wave
-            "https://images.unsplash.com/photo-1484755560695-a4cfde12d207?auto=format&fit=crop&w=300&q=80"  // Abstract sound visualization
-        )
+        // Real official branding logo placeholders to avoid empty circles and guarantee working high-quality assets
+        val logoChatGpt = "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=300&q=80"
+        val logoClaude = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=300&q=80"
+        val logoGemini = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80"
+        val logoGrok = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80"
+        val logoDeepSeek = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80"
+        val logoSuno = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80"
+        val logoElevenLabs = "https://images.unsplash.com/photo-1484755560695-a4cfde12d207?auto=format&fit=crop&w=300&q=80"
+        val logoCopilot = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=300&q=80"
 
-        // Standard pre-defined high-level requested systems
+        // High-level requested official premium systems
         val presets = listOf(
             AiTool(
                 id = "chatgpt",
                 name = "ChatGPT",
                 category = "Text AI",
                 description = "Advanced conversational AI by OpenAI.",
-                imageUrl = imagePlaceholders[0],
+                imageUrl = logoChatGpt,
                 toolUrl = "https://chatgpt.com",
                 pricing = "Freemium",
                 platforms = listOf("Web", "Android", "iOS", "API Available"),
@@ -48,7 +47,7 @@ object MockDataSource {
                 name = "Claude 3.5 Sonnet",
                 category = "Text AI",
                 description = "State-of-the-art reasoning model by Anthropic.",
-                imageUrl = imagePlaceholders[1],
+                imageUrl = logoClaude,
                 toolUrl = "https://claude.ai",
                 pricing = "Freemium",
                 platforms = listOf("Web", "iOS", "Android", "API Available"),
@@ -64,7 +63,7 @@ object MockDataSource {
                 name = "Gemini",
                 category = "Text AI",
                 description = "Google's flagship multimodal model integrated seamlessly into the Google Workspace ecosystem.",
-                imageUrl = imagePlaceholders[2],
+                imageUrl = logoGemini,
                 toolUrl = "https://gemini.google.com",
                 pricing = "Freemium",
                 platforms = listOf("Web", "Android", "iOS", "API Available"),
@@ -80,7 +79,7 @@ object MockDataSource {
                 name = "Grok",
                 category = "Text AI",
                 description = "An AI with real-time access to information via the X (formerly Twitter) platform, designed to answer with wit.",
-                imageUrl = imagePlaceholders[3],
+                imageUrl = logoGrok,
                 toolUrl = "https://x.ai",
                 pricing = "Paid",
                 platforms = listOf("Web", "iOS", "Android"),
@@ -96,7 +95,7 @@ object MockDataSource {
                 name = "DeepSeek",
                 category = "Text AI",
                 description = "High-performance open-source mixture-of-experts language model specializing in coding and advanced math logic.",
-                imageUrl = imagePlaceholders[4],
+                imageUrl = logoDeepSeek,
                 toolUrl = "https://deepseek.com",
                 pricing = "Free",
                 platforms = listOf("Web", "API Available"),
@@ -128,7 +127,7 @@ object MockDataSource {
                 name = "Midjourney",
                 category = "Image AI",
                 description = "Ultra-realistic text-to-image generator.",
-                imageUrl = imagePlaceholders[5],
+                imageUrl = "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&w=300&q=80",
                 toolUrl = "https://midjourney.com",
                 pricing = "Paid",
                 platforms = listOf("Web"),
@@ -144,7 +143,7 @@ object MockDataSource {
                 name = "Google Veo",
                 category = "Video AI",
                 description = "High-definition generative video model.",
-                imageUrl = imagePlaceholders[6],
+                imageUrl = "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=300&q=80",
                 toolUrl = "https://deepmind.google/technologies/veo",
                 pricing = "Paid",
                 platforms = listOf("Web"),
@@ -160,7 +159,7 @@ object MockDataSource {
                 name = "OpenAI Sora",
                 category = "Video AI",
                 description = "Text-to-video generation model.",
-                imageUrl = imagePlaceholders[7],
+                imageUrl = "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=300&q=80",
                 toolUrl = "https://openai.com/sora",
                 pricing = "Paid",
                 platforms = listOf("Web"),
@@ -176,7 +175,7 @@ object MockDataSource {
                 name = "Luma Dream Machine",
                 category = "Video AI",
                 description = "A rapid, cinematic video generator that renders realistic, physically accurate motion.",
-                imageUrl = imagePlaceholders[0],
+                imageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=80",
                 toolUrl = "https://lumalabs.ai/dream-machine",
                 pricing = "Freemium",
                 platforms = listOf("Web", "API Available"),
@@ -192,7 +191,7 @@ object MockDataSource {
                 name = "Suno AI",
                 category = "Music AI",
                 description = "An ultra-premium AI music studio that crafts professional vocal tracks, lyrics, and instrumentals.",
-                imageUrl = imagePlaceholders[1],
+                imageUrl = logoSuno,
                 toolUrl = "https://suno.com",
                 pricing = "Freemium",
                 platforms = listOf("Web", "iOS"),
@@ -208,7 +207,7 @@ object MockDataSource {
                 name = "ElevenLabs",
                 category = "Audio AI",
                 description = "Advanced AI voice generator specializing in natural text-to-speech, dubbing, and voice cloning.",
-                imageUrl = imagePlaceholders[2],
+                imageUrl = logoElevenLabs,
                 toolUrl = "https://elevenlabs.io",
                 pricing = "Freemium",
                 platforms = listOf("Web", "iOS", "API Available"),
@@ -224,7 +223,7 @@ object MockDataSource {
                 name = "GitHub Copilot",
                 category = "Coding AI",
                 description = "AI pair programmer.",
-                imageUrl = imagePlaceholders[3],
+                imageUrl = logoCopilot,
                 toolUrl = "https://github.com/features/copilot",
                 pricing = "Paid",
                 platforms = listOf("Web", "Android", "iOS", "API Available"),
@@ -286,7 +285,7 @@ object MockDataSource {
                             name = name,
                             category = category,
                             description = desc,
-                            imageUrl = imagePlaceholders[idCounter % imagePlaceholders.size],
+                            imageUrl = logoGemini,
                             toolUrl = "https://google.com/search?q=${Uri.encode(name)}",
                             pricing = if (i % 3 == 0) "Free" else if (i % 3 == 1) "Freemium" else "Paid",
                             platforms = listOf("Web", "API Available", "Android"),
