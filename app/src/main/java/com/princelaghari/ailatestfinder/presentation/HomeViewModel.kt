@@ -214,6 +214,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun getBannerAdUnitId(): String {
+        return adManager.getBannerAdUnitId()
+    }
+
     private fun isCurrentlyConnected(): Boolean {
         val activeNetwork = connectivityManager.activeNetwork ?: return false
         val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false

@@ -97,10 +97,16 @@ class FirebaseFirestoreRepositoryImpl @Inject constructor(
                                     }
                                 }
                                 if (tools.isNotEmpty()) {
-                                    // Cache newly received items in Room Database
+                                    // Cache newly received items in Room Database to keep replica in absolute sync
                                     val entities = tools.map { AiToolEntity.fromDomain(it) }
                                     CoroutineScope(Dispatchers.IO).launch {
-                                        aiToolDao.insertAll(entities)
+                                        try {
+                                            aiToolDao.deleteAll()
+                                            aiToolDao.insertAll(entities)
+                                            Log.d(TAG, "Room local cache successfully updated to perfectly replicate the primary Firestore database (${tools.size} tools).")
+                                        } catch (e: Exception) {
+                                            Log.e(TAG, "Failed to update Room cache from Firestore", e)
+                                        }
                                     }
                                     trySend(tools)
                                 }

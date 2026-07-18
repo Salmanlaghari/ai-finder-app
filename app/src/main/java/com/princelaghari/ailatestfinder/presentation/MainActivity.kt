@@ -308,7 +308,7 @@ fun MainScreen(viewModel: HomeViewModel) {
             }
 
             // AdMob Banner integration at bottom of Screen
-            AdBanner()
+            AdBanner(adUnitId = viewModel.getBannerAdUnitId())
         }
 
         // Beautiful Detail Overlay Dialog portal overlay

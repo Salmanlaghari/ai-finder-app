@@ -23,9 +23,9 @@ class AdManager @Inject constructor() {
     private val TAG = "AdManager"
     private val isInitialized = AtomicBoolean(false)
 
-    // Ad Units (Currently utilizing Google standard Test IDs as requested.
-    // Real production IDs will replace these once provided by the user).
-    private val TEST_BANNER_ID = "[APNI REAL ADMOB BANNER ID YAHAN PASTE KAREIN]"
+    // Ad Units (Utilizing Google standard Test IDs during development.
+    // Real production IDs will securely replace these once requested).
+    private val TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111"
     private val TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
     private val TEST_REWARDED_ID = "ca-app-pub-3940256099942544/5224354917"
 

@@ -563,10 +563,10 @@ fun AiToolCard(
 
 
 /**
- * AdBanner integrates Google AdMob SDK directly utilizing test ad units safely.
+ * AdBanner integrates Google AdMob SDK directly utilizing Ad Unit ID dynamically.
  */
 @Composable
-fun AdBanner(modifier: Modifier = Modifier) {
+fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -579,7 +579,7 @@ fun AdBanner(modifier: Modifier = Modifier) {
             factory = { context ->
                 AdView(context).apply {
                     setAdSize(AdSize.BANNER)
-                    adUnitId = "[APNI REAL ADMOB BANNER ID YAHAN PASTE KAREIN]"
+                    this.adUnitId = adUnitId
                     loadAd(AdRequest.Builder().build())
                 }
             }

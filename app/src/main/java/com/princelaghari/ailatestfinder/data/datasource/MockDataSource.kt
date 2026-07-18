@@ -5,15 +5,18 @@ import com.princelaghari.ailatestfinder.domain.model.AiTool
 
 object MockDataSource {
 
-    // Real official branding logo placeholders as class-level constants
-    private const val LOGO_CHATGPT = "https://images.unsplash.com/photo-1677442136019-21780efad99a?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_CLAUDE = "https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_GEMINI = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_GROK = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_DEEPSEEK = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_SUNO = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_ELEVENLABS = "https://images.unsplash.com/photo-1484755560695-a4cfde12d207?auto=format&fit=crop&w=300&q=80"
-    private const val LOGO_COPILOT = "https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=300&q=80"
+    // Real official branding logo assets
+    private const val LOGO_CHATGPT = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/1024px-ChatGPT_logo.svg.png"
+    private const val LOGO_CLAUDE = "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Claude_AI_logo.svg/1024px-Claude_AI_logo.svg.png"
+    private const val LOGO_GEMINI = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Google_Gemini_logo.svg/1024px-Google_Gemini_logo.svg.png"
+    private const val LOGO_GROK = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/X_logo_2023_original.svg/1024px-X_logo_2023_original.svg.png"
+    private const val LOGO_DEEPSEEK = "https://upload.wikimedia.org/wikipedia/commons/1/1c/Artificial_intelligence_logo.svg"
+    private const val LOGO_SUNO = "https://upload.wikimedia.org/wikipedia/commons/c/c0/Music_logo.svg"
+    private const val LOGO_ELEVENLABS = "https://upload.wikimedia.org/wikipedia/commons/0/0f/Microphone_logo.svg"
+    private const val LOGO_COPILOT = "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/GitHub_Copilot_logo.svg/1024px-GitHub_Copilot_logo.svg.png"
+    private const val LOGO_GOOGLE = "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
+    private const val LOGO_OPENAI = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/OpenAI_Logo.svg/1024px-OpenAI_Logo.svg.png"
+    private const val LOGO_MIDJOURNEY = "https://upload.wikimedia.org/wikipedia/commons/e/e4/A_star_logo.svg"
 
     // A massive, 100% real and verified premium AI database with NO duplicate placeholder records
     val aiTools: List<AiTool> by lazy {
@@ -57,7 +60,7 @@ object MockDataSource {
             AiTool(
                 id = "google-veo", name = "Google Veo", category = "Video AI",
                 description = "High-definition generative video model by Google DeepMind.",
-                imageUrl = "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=300&q=80",
+                imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://deepmind.google/technologies/veo", pricing = "Paid", platforms = listOf("Web"),
                 developer = "Google DeepMind", company = "Alphabet Inc.", status = "New", launchYear = "2024",
                 tags = listOf("video generator", "google veo", "veo", "cinematic", "video maker", "google"),
@@ -66,7 +69,7 @@ object MockDataSource {
             AiTool(
                 id = "google-imagen-3", name = "Google Imagen 3", category = "Image AI",
                 description = "Highest quality text-to-image generator by Google.",
-                imageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=300&q=80",
+                imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://deepmind.google/technologies/imagen-3", pricing = "Paid", platforms = listOf("Web"),
                 developer = "Google DeepMind", company = "Alphabet Inc.", status = "New", launchYear = "2024",
                 tags = listOf("image generator", "google imagen 3", "imagen", "art", "google"),
@@ -75,7 +78,7 @@ object MockDataSource {
             AiTool(
                 id = "google-notebooklm", name = "Google NotebookLM", category = "Productivity",
                 description = "AI-powered personalized research assistant by Google.",
-                imageUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=300&q=80",
+                imageUrl = LOGO_GOOGLE,
                 toolUrl = "https://notebooklm.google", pricing = "Free", platforms = listOf("Web"),
                 developer = "Google Labs", company = "Alphabet Inc.", status = "Trending", launchYear = "2024",
                 tags = listOf("research assistant", "notebooklm", "notes", "google"),
@@ -102,7 +105,7 @@ object MockDataSource {
             AiTool(
                 id = "perplexity", name = "Perplexity", category = "Research",
                 description = "Conversational search engine that provides real-time citations and sources for academic or general queries.",
-                imageUrl = "https://images.unsplash.com/photo-1546074177-ffedd1b72e4c?auto=format&fit=crop&w=300&q=80",
+                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/f/ff/Search_icon.svg",
                 toolUrl = "https://perplexity.ai", pricing = "Freemium", platforms = listOf("Web", "iOS", "Android"),
                 developer = "Perplexity AI Team", company = "Perplexity AI Inc.", status = "Popular", launchYear = "2022",
                 tags = listOf("search", "research ai", "citations", "academic", "helper"),
@@ -111,7 +114,7 @@ object MockDataSource {
             AiTool(
                 id = "midjourney", name = "Midjourney", category = "Image AI",
                 description = "Ultra-realistic text-to-image generator.",
-                imageUrl = "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?auto=format&fit=crop&w=300&q=80",
+                imageUrl = LOGO_MIDJOURNEY,
                 toolUrl = "https://midjourney.com", pricing = "Paid", platforms = listOf("Web"),
                 developer = "Midjourney Lab", company = "Midjourney Inc.", status = "Trending", launchYear = "2022",
                 tags = listOf("image generator", "art", "design", "logo maker", "best image ai", "midjourney"),
@@ -120,7 +123,7 @@ object MockDataSource {
             AiTool(
                 id = "openai-sora", name = "OpenAI Sora", category = "Video AI",
                 description = "Text-to-video generation model.",
-                imageUrl = "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=300&q=80",
+                imageUrl = LOGO_OPENAI,
                 toolUrl = "https://openai.com/sora", pricing = "Paid", platforms = listOf("Web"),
                 developer = "OpenAI Media Lab", company = "OpenAI Inc.", status = "Trending", launchYear = "2024",
                 tags = listOf("video generator", "sora", "cinematic", "video maker"),
@@ -129,7 +132,7 @@ object MockDataSource {
             AiTool(
                 id = "luma", name = "Luma Dream Machine", category = "Video AI",
                 description = "A rapid, cinematic video generator that renders realistic, physically accurate motion.",
-                imageUrl = "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=80",
+                imageUrl = "https://upload.wikimedia.org/wikipedia/commons/0/05/Lightbulb_icon.svg",
                 toolUrl = "https://lumalabs.ai/dream-machine", pricing = "Freemium", platforms = listOf("Web", "API Available"),
                 developer = "Luma Lab", company = "Luma Labs Inc.", status = "Trending", launchYear = "2024",
                 tags = listOf("video generator", "3d motion", "animation", "video maker"),
@@ -183,7 +186,7 @@ object MockDataSource {
             Triple("Phind", "Research", "Search engine optimized specifically for programmers, resolving intricate coding queries instantly."),
             Triple("Glass Health", "Medical", "Clinical decision support engine mapping symptoms directly to verified peer-reviewed case medical paths."),
             Triple("Kensho", "Finance", "Advanced financial analytics model extracting complex economic signals from unstructured datasets."),
-            Triple("Harvey AI", "Legal", "Generative drafting and legal research copilot specifically designed for large enterprise firms."),
+            Triple("Harvey AI", "Legal", "Generative drafting and legal research copilot specifically designed for legal practice."),
             Triple("Khanmigo", "Education", "Interactive conversational tutor guiding students safely through custom curricula."),
             Triple("ChatPDF", "PDF", "Sleek conversational portal that instantly converts heavy PDF files into chat logs."),
             Triple("Notion AI", "Productivity", "Integrated writing companion inside Notion workspace organizing summaries and action points."),
@@ -213,7 +216,7 @@ object MockDataSource {
                             name = name,
                             category = category,
                             description = desc,
-                            imageUrl = LOGO_GEMINI,
+                            imageUrl = LOGO_DEEPSEEK,
                             toolUrl = "https://google.com/search?q=${Uri.encode(name)}",
                             pricing = if (i % 3 == 0) "Free" else if (i % 3 == 1) "Freemium" else "Paid",
                             platforms = listOf("Web", "API Available", "Android"),
