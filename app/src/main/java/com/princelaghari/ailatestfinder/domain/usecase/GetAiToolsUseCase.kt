@@ -38,6 +38,7 @@ class GetAiToolsUseCase @Inject constructor(
                         val catLower = tool.category.lowercase()
                         val statusLower = tool.status.lowercase()
                         val tagsLower = tool.tags.map { it.lowercase() }
+                        val alternativesLower = tool.alternatives.map { it.lowercase() }
                         val nameWords = nameLower.split("\\s+".toRegex())
 
                         // Check if all search terms match at least one metadata field in the tool (supporting typo-tolerance on terms)
@@ -48,7 +49,8 @@ class GetAiToolsUseCase @Inject constructor(
                                     descLower.contains(term) ||
                                     catLower.contains(term) ||
                                     statusLower.contains(term) ||
-                                    tagsLower.any { it.contains(term) }
+                                    tagsLower.any { it.contains(term) } ||
+                                    alternativesLower.any { it.contains(term) }
 
                             if (matchesField) {
                                 true
@@ -91,6 +93,7 @@ class GetAiToolsUseCase @Inject constructor(
                                 if (catLower.contains(term)) score += 35
                                 if (statusLower.contains(term)) score += 30
                                 if (tagsLower.any { it.contains(term) }) score += 25
+                                if (alternativesLower.any { it.contains(term) }) score += 25
                                 if (descLower.contains(term)) score += 15
                                 if (devLower.contains(term) || compLower.contains(term)) score += 20
                                 if (hasTypoMatch) score += 30

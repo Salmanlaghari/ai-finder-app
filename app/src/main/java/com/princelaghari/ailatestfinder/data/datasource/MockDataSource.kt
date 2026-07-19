@@ -23,6 +23,11 @@ object MockDataSource {
     private const val LOGO_GITHUB = "https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
     private const val LOGO_ADOBE = "https://upload.wikimedia.org/wikipedia/commons/9/90/Adobe_Corporate_wordmark.svg"
     private const val LOGO_CANVA = "https://upload.wikimedia.org/wikipedia/commons/b/b8/Canva_logo.svg"
+    private const val LOGO_VERCEL = "https://upload.wikimedia.org/wikipedia/commons/5/5e/Vercel_logo_black.svg"
+    private const val LOGO_PDF = "https://upload.wikimedia.org/wikipedia/commons/8/87/PDF_file_icon.svg"
+    private const val LOGO_JUSTICE = "https://upload.wikimedia.org/wikipedia/commons/d/d2/Scale_of_justice_2.svg"
+    private const val LOGO_KHAN = "https://upload.wikimedia.org/wikipedia/commons/3/3a/Khan_Academy_logo_%282018%29.svg"
+    private const val LOGO_SPGLOBAL = "https://upload.wikimedia.org/wikipedia/commons/e/e7/S%26P_Global_logo.svg"
 
     // A curated, 100% real and verified premium AI database containing 1000+ professional records.
     val aiTools: List<AiTool> by lazy {
@@ -258,7 +263,7 @@ object MockDataSource {
         AiTool(
             id = "phind", name = "Phind", category = "Research",
             description = "Intelligent developer-first search engine optimized to solve complex software engineering and architectural problems with direct code solutions.",
-            imageUrl = "",
+            imageUrl = LOGO_GITHUB,
             toolUrl = "https://phind.com", pricing = "Freemium", platforms = listOf("Web", "VS Code Extension"),
             developer = "Phind Inc.", company = "Phind", status = "Popular", launchYear = "2023",
             tags = listOf("search", "coding search", "developer tool", "phind"),
@@ -357,7 +362,7 @@ object MockDataSource {
         AiTool(
             id = "luma-dream", name = "Luma Dream Machine", category = "Video AI",
             description = "A rapid, cinematic video generator that renders realistic, physically accurate motion from descriptive text prompts and high-fidelity source images.",
-            imageUrl = "",
+            imageUrl = LOGO_RUNWAY,
             toolUrl = "https://lumalabs.ai/dream-machine", pricing = "Freemium", platforms = listOf("Web"),
             developer = "Luma Labs", company = "Luma Labs", status = "New", launchYear = "2024",
             tags = listOf("video generator", "3d motion", "animation", "luma", "dream machine"),
@@ -384,7 +389,7 @@ object MockDataSource {
         AiTool(
             id = "udio-ai", name = "Udio AI", category = "Music AI",
             description = "High-fidelity music composition suite that generates complete musical tracks with high-quality vocals, complex song progression, and genre-bending audio layers.",
-            imageUrl = "",
+            imageUrl = LOGO_SUNO,
             toolUrl = "https://udio.com", pricing = "Freemium", platforms = listOf("Web"),
             developer = "Udio Team", company = "Udio Inc.", status = "New", launchYear = "2024",
             tags = listOf("music generator", "song creator", "udio", "vocals"),
@@ -393,7 +398,7 @@ object MockDataSource {
         AiTool(
             id = "elevenlabs", name = "ElevenLabs", category = "Audio AI",
             description = "Advanced speech synthesis model specializing in highly natural text-to-speech, instant voice cloning, and translation dubbing across over 29 languages.",
-            imageUrl = "",
+            imageUrl = LOGO_SUNO,
             toolUrl = "https://elevenlabs.io", pricing = "Freemium", platforms = listOf("Web", "iOS", "API"),
             developer = "ElevenLabs Team", company = "ElevenLabs", status = "Popular", launchYear = "2023",
             tags = listOf("voice ai", "voice clone", "speech generator", "elevenlabs"),
@@ -429,7 +434,7 @@ object MockDataSource {
         AiTool(
             id = "v0", name = "v0 by Vercel", category = "Coding AI",
             description = "Generative UI system that translates prompts into clean, production-ready frontend components using Tailwind CSS, React, and Lucide icons.",
-            imageUrl = "",
+            imageUrl = LOGO_VERCEL,
             toolUrl = "https://v0.dev", pricing = "Freemium", platforms = listOf("Web"),
             developer = "Vercel Team", company = "Vercel", status = "Trending", launchYear = "2023",
             tags = listOf("frontend generator", "react code", "tailwind", "vercel", "v0"),
@@ -438,7 +443,7 @@ object MockDataSource {
         AiTool(
             id = "bolt-new", name = "Bolt.new", category = "Coding AI",
             description = "Full-stack sandboxed web-container IDE that instantly boots up, installs dependencies, writes full-stack code, and deploys live web applications directly in the browser.",
-            imageUrl = "",
+            imageUrl = LOGO_VERCEL,
             toolUrl = "https://bolt.new", pricing = "Freemium", platforms = listOf("Web"),
             developer = "StackBlitz Team", company = "StackBlitz", status = "New", launchYear = "2024",
             tags = listOf("fullstack generator", "browser ide", "no-code", "bolt"),
@@ -447,7 +452,7 @@ object MockDataSource {
         AiTool(
             id = "lovable", name = "Lovable.dev", category = "Coding AI",
             description = "Full-stack AI developer assistant that designs, codes, and publishes production-grade applications with zero manual setup required.",
-            imageUrl = "",
+            imageUrl = LOGO_VERCEL,
             toolUrl = "https://lovable.dev", pricing = "Paid", platforms = listOf("Web"),
             developer = "Lovable Team", company = "Lovable AI", status = "New", launchYear = "2024",
             tags = listOf("app creator", "no-code developer", "lovable"),
@@ -456,7 +461,7 @@ object MockDataSource {
         AiTool(
             id = "autogpt", name = "AutoGPT", category = "Agents",
             description = "Autonomous task orchestration system that splits high-level goals into smaller subtasks, browse websites, runs local code, and updates files dynamically.",
-            imageUrl = "",
+            imageUrl = LOGO_GITHUB,
             toolUrl = "https://github.com/Significant-Gravitas/AutoGPT", pricing = "Free", platforms = listOf("Web", "Local Terminal"),
             developer = "Significant Gravitas", company = "Open Source Team", status = "Popular", launchYear = "2023",
             tags = listOf("agent", "autonomous", "autogpt", "open source"),
@@ -465,7 +470,7 @@ object MockDataSource {
         AiTool(
             id = "devin", name = "Devin (Cognition)", category = "Agents",
             description = "The world's first fully autonomous AI software engineer, capable of working through complex programming tickets, building apps, and debugging locally.",
-            imageUrl = "",
+            imageUrl = LOGO_GITHUB,
             toolUrl = "https://cognition-labs.com", pricing = "Paid", platforms = listOf("Web"),
             developer = "Cognition Team", company = "Cognition Labs", status = "Trending", launchYear = "2024",
             tags = listOf("agent", "autonomous coder", "devin", "software engineer"),
@@ -474,7 +479,7 @@ object MockDataSource {
         AiTool(
             id = "chatpdf", name = "ChatPDF", category = "PDF",
             description = "Instant conversational portal that parses textbooks, lengthy legal agreements, research studies, and manuals into interactive question-and-answer logs.",
-            imageUrl = "",
+            imageUrl = LOGO_PDF,
             toolUrl = "https://chatpdf.com", pricing = "Freemium", platforms = listOf("Web"),
             developer = "ChatPDF Inc.", company = "ChatPDF", status = "Popular", launchYear = "2023",
             tags = listOf("pdf analyzer", "chat pdf", "documents reader"),
@@ -492,7 +497,7 @@ object MockDataSource {
         AiTool(
             id = "harvey-ai", name = "Harvey AI", category = "Legal",
             description = "Enterprise generative assistant trained specifically for corporate law firms, facilitating contract analysis, regulatory compliance, and legal drafting.",
-            imageUrl = "",
+            imageUrl = LOGO_JUSTICE,
             toolUrl = "https://harvey.ai", pricing = "Paid", platforms = listOf("Web"),
             developer = "Harvey Team", company = "Harvey AI", status = "New", launchYear = "2023",
             tags = listOf("legal copilot", "contracts researcher", "harvey"),
@@ -501,7 +506,7 @@ object MockDataSource {
         AiTool(
             id = "kensho", name = "Kensho", category = "Finance",
             description = "Financial analytics platform that converts unstructured economic datasets, corporate call transcriptions, and reports into clean signals.",
-            imageUrl = "",
+            imageUrl = LOGO_SPGLOBAL,
             toolUrl = "https://kensho.com", pricing = "Paid", platforms = listOf("Web"),
             developer = "Kensho Team", company = "S&P Global", status = "Popular", launchYear = "2021",
             tags = listOf("finance tool", "market analytics", "kensho"),
@@ -510,7 +515,7 @@ object MockDataSource {
         AiTool(
             id = "khanmigo", name = "Khanmigo", category = "Education",
             description = "AI tutor developed by Khan Academy, providing personalized math coaching and guided curriculum learning in a safe, conversational space.",
-            imageUrl = "",
+            imageUrl = LOGO_KHAN,
             toolUrl = "https://khanacademy.org/khanmigo", pricing = "Paid", platforms = listOf("Web"),
             developer = "Khan Academy", company = "Khan Academy", status = "Popular", launchYear = "2023",
             tags = listOf("tutor", "math solver", "education assistant", "khanmigo"),
@@ -537,7 +542,7 @@ object MockDataSource {
         AiTool(
             id = "glass-health", name = "Glass Health", category = "Medical",
             description = "AI-powered clinical decision platform that maps medical symptoms to peer-reviewed treatment paths and verified case study documentation.",
-            imageUrl = "",
+            imageUrl = LOGO_GOOGLE,
             toolUrl = "https://glass.health", pricing = "Paid", platforms = listOf("Web"),
             developer = "Glass Team", company = "Glass Health", status = "New", launchYear = "2022",
             tags = listOf("clinical assistant", "medical diagnoses", "glass health"),

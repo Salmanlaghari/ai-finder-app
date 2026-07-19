@@ -98,6 +98,13 @@ fun MainScreen(viewModel: HomeViewModel) {
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
     var activeBrowserUrl by remember { mutableStateOf<String?>(null) }
 
+    val isCompactMode by viewModel.isCompactMode.collectAsState()
+    val defaultSearchEngine by viewModel.defaultSearchEngine.collectAsState()
+
+    var showSettings by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
+    var showPrivacyPolicy by remember { mutableStateOf(false) }
+
     // Dynamically filter active list on Drawer clicks
     val activeList = remember(aiTools, activeViewMode, favoriteIds, recentlyViewedIds) {
         when (activeViewMode) {
@@ -141,24 +148,29 @@ fun MainScreen(viewModel: HomeViewModel) {
             ) {
                 Spacer(modifier = Modifier.height(24.dp))
                 // Brand Header in Drawer
-                Column(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Ai Latest Finder",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MetallicGold,
-                        letterSpacing = 1.2.sp
-                    )
-                    Text(
-                        text = "Premium Portal v1.0",
-                        fontSize = 11.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
+                    Premium3DLogo(size = 48)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Ai Latest Finder",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MetallicGold,
+                            letterSpacing = 1.2.sp
+                        )
+                        Text(
+                            text = "Premium Portal v1.0.2",
+                            fontSize = 11.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
                 }
 
                 HorizontalDivider(color = MetallicGold.copy(alpha = 0.2f), modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
@@ -169,6 +181,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                     "AI History" to "Your recently viewed models",
                     "Favorites" to "Your curated AI shortlist",
                     "Categories" to "Browse by domains",
+                    "Lite Browser" to "Open secure web portal",
                     "Settings" to "Configure interface preferences",
                     "About" to "Platform details & info",
                     "Privacy Policy" to "Your data protection rights"
@@ -208,14 +221,17 @@ fun MainScreen(viewModel: HomeViewModel) {
                                     activeViewMode = "Home"
                                     viewModel.onCategorySelected("All")
                                 }
+                                "Lite Browser" -> {
+                                    activeBrowserUrl = "https://www.google.com"
+                                }
                                 "Settings" -> {
-                                    Toast.makeText(context, "Settings panel ready for customized profiles.", Toast.LENGTH_SHORT).show()
+                                    showSettings = true
                                 }
                                 "About" -> {
-                                    Toast.makeText(context, "Ai Latest Finder v1.0.2 - Premium Directory curated by Prince Laghari.", Toast.LENGTH_LONG).show()
+                                    showAbout = true
                                 }
                                 "Privacy Policy" -> {
-                                    openUrlWithChromeCustomTabs(context, "https://google.com/search?q=Ai+Latest+Finder+Privacy+Policy")
+                                    showPrivacyPolicy = true
                                 }
                             }
                         },
@@ -263,6 +279,8 @@ fun MainScreen(viewModel: HomeViewModel) {
                         )
                     }
                     Spacer(modifier = Modifier.width(4.dp))
+                    Premium3DLogo(size = 40)
+                    Spacer(modifier = Modifier.width(10.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Ai Latest Finder",
@@ -464,6 +482,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                     AiToolCard(
                                         tool = tool,
                                         searchQuery = searchQuery, // Pass searchQuery to highlight matches
+                                        isCompactMode = isCompactMode,
                                         onCardClicked = { selectedTool ->
                                             viewModel.addToRecentlyViewed(selectedTool.id)
                                             selectedToolForDetail = selectedTool
@@ -503,6 +522,39 @@ fun MainScreen(viewModel: HomeViewModel) {
             ExternalSearchDialog(
                 query = searchQuery,
                 onDismiss = { showExternalSearchPanel = false }
+            )
+        }
+
+        if (showSettings) {
+            SettingsDialog(
+                isCompactMode = isCompactMode,
+                onToggleCompactMode = { viewModel.toggleCompactMode(it) },
+                selectedEngine = defaultSearchEngine,
+                onSelectEngine = { viewModel.selectSearchEngine(it) },
+                onClearHistory = {
+                    viewModel.clearAllHistory()
+                    Toast.makeText(context, "History cleared successfully", Toast.LENGTH_SHORT).show()
+                },
+                onClearFavorites = {
+                    viewModel.clearAllFavorites()
+                    Toast.makeText(context, "Favorites cleared successfully", Toast.LENGTH_SHORT).show()
+                },
+                onDismiss = { showSettings = false }
+            )
+        }
+
+        if (showAbout) {
+            AboutDialog(
+                onBuyMeCoffee = {
+                    openUrlWithChromeCustomTabs(context, "https://buymeacoffee.com/princelaghari")
+                },
+                onDismiss = { showAbout = false }
+            )
+        }
+
+        if (showPrivacyPolicy) {
+            PrivacyPolicyDialog(
+                onDismiss = { showPrivacyPolicy = false }
             )
         }
     }

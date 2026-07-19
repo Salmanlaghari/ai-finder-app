@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -85,6 +86,268 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
             context.startActivity(intent)
         } catch (ex: Exception) {
             Toast.makeText(context, "Could not open link", Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+/**
+ * Fully functional Premium Settings Dialog to customize user preferences.
+ * Toggles compact lists, resets local databases, and selects default external search engines.
+ */
+@Composable
+fun SettingsDialog(
+    isCompactMode: Boolean,
+    onToggleCompactMode: (Boolean) -> Unit,
+    selectedEngine: String,
+    onSelectEngine: (String) -> Unit,
+    onClearHistory: () -> Unit,
+    onClearFavorites: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "PREMIUM PREFERENCES PANEL",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MetallicGold,
+                    letterSpacing = 1.2.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Toggle Compact Mode
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = "Compact Card Mode", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Display tools in a tighter, high-density format", color = Color.Gray, fontSize = 10.sp)
+                    }
+                    Switch(
+                        checked = isCompactMode,
+                        onCheckedChange = onToggleCompactMode,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.Black,
+                            checkedTrackColor = MetallicGold,
+                            uncheckedThumbColor = Color.Gray,
+                            uncheckedTrackColor = Color.DarkGray
+                        )
+                    )
+                }
+
+                HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 12.dp))
+
+                // External Search Engine selector
+                Text(text = "Default External Search Portal", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf("Google", "DuckDuckGo", "Perplexity").forEach { engine ->
+                        val isSelected = engine == selectedEngine
+                        Box(
+                            modifier = Modifier
+                                .background(if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(8.dp))
+                                .border(0.5.dp, if (isSelected) MetallicGold else Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                .clickable { onSelectEngine(engine) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = engine,
+                                color = if (isSelected) MetallicGold else Color.Gray,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 12.dp))
+
+                // Data actions
+                Text(text = "Local Cache Management", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = onClearHistory,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(text = "Clear History", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Button(
+                        onClick = onClearFavorites,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(text = "Clear Favs", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(text = "CLOSE", color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Fully functional Premium About Dialog.
+ * Showcases application identity, curation stack, and dynamic support widget.
+ */
+@Composable
+fun AboutDialog(
+    onBuyMeCoffee: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Premium3DLogo(size = 64)
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Ai Latest Finder",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MetallicGold
+                )
+                Text(
+                    text = "Version 1.0.2 (Release Candidate)",
+                    fontSize = 11.sp,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "A flagship catalog application curated by Prince Laghari, compiling over 1000 premium artificial intelligence platforms under a secure, offline-first Clean Architecture sync system.",
+                    fontSize = 12.sp,
+                    color = Color.LightGray,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 16.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Curator & Owner: Prince Laghari\nTech Stack: Jetpack Compose, MVVM, Hilt, Room, Firestore, AdMob SDK",
+                    fontSize = 10.sp,
+                    color = MetallicGold.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 14.sp
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Buy Me Coffee widget
+                Button(
+                    onClick = onBuyMeCoffee,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDD00)),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text(text = "☕ Buy Me a Coffee", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+                TextButton(onClick = onDismiss) {
+                    Text(text = "DISMISS", color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Self-contained local scrollable Privacy Policy dialog to satisfy App Store compliance.
+ */
+@Composable
+fun PrivacyPolicyDialog(
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "PRIVACY POLICY & DATA RIGHTS",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MetallicGold,
+                    letterSpacing = 1.2.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .height(200.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = "Your privacy is paramount to us at Ai Latest Finder.\n\n" +
+                                "1. DATA COLLECTION\n" +
+                                "This application is built with privacy-by-design. We do not host user registration accounts, nor do we track your geographic coordinates or identity. All data, including favorited tools and recently viewed history lists, is strictly cached locally on your device's sandbox partition utilizing Room database structures.\n\n" +
+                                "2. NETWORK COMMUNICATIONS\n" +
+                                "The app initiates direct connections with Firebase Firestore to retrieve real-time catalog revisions. This data synchronization is 100% secure, read-only, and anonymous.\n\n" +
+                                "3. ADVERTISING AND TRACKING\n" +
+                                "We utilize Google Mobile Ads (AdMob) SDK to display policy-compliant banners. AdMob may utilize anonymous advertising identifiers to serve tailored materials. You may request to disable advertising tracking directly inside your primary Android device settings.\n\n" +
+                                "4. SECURITY\n" +
+                                "All external web routing performed inside our custom Lite Browser uses isolated contexts to safeguard credentials and prevent local script injections.\n\n" +
+                                "By utilizing this app, you fully consent to these terms. For any concerns, contact our Administrator Prince Laghari.",
+                        fontSize = 11.sp,
+                        color = Color.LightGray,
+                        lineHeight = 15.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(text = "I AGREE", color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }
@@ -190,22 +453,157 @@ fun ExternalSearchDialog(
 }
 
 /**
+ * A highly polished, 3D-styled Metallic Gold Application Emblem.
+ * Created using layered gradients, beveled concentric rings, and soft outer/inner drop shadows
+ * to render a beautiful 3D shape application icon.
+ */
+@Composable
+fun Premium3DLogo(
+    modifier: Modifier = Modifier,
+    size: Int = 100
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "logoGlow")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+
+    Box(
+        modifier = modifier
+            .size(size.dp)
+            .scale(pulseScale),
+        contentAlignment = Alignment.Center
+    ) {
+        // Shadow/Glow layer 1 (Outer Deep Shadow & Glow)
+        Box(
+            modifier = Modifier
+                .size((size * 0.95).dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFFDF00).copy(alpha = 0.25f),
+                            Color.Transparent
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        )
+
+        // Beveled Outer Gold Ring (Layer 2) - Gives thickness and 3D depth
+        Box(
+            modifier = Modifier
+                .size((size * 0.9).dp)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF8A7322), // Deep brass/bronze
+                            Color(0xFFFFF6D1), // Bright Highlight
+                            Color(0xFFD4AF37), // Metallic Gold
+                            Color(0xFF5C4A13)  // Dark shadow bevel
+                        ),
+                        start = Offset(0f, 0f),
+                        end = Offset(100f, 100f)
+                    ),
+                    shape = CircleShape
+                )
+                .border(
+                    width = 1.5.dp,
+                    color = Color(0xFFFFF6D1).copy(alpha = 0.8f),
+                    shape = CircleShape
+                )
+        )
+
+        // Inner Matte Dark Charcoal Core (Layer 3) - Sinks into the ring
+        Box(
+            modifier = Modifier
+                .size((size * 0.76).dp)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF0F0F0F), // Dark base
+                            Color(0xFF1F1F1F)  // Soft highlight
+                        )
+                    ),
+                    shape = CircleShape
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFFD4AF37).copy(alpha = 0.3f),
+                    shape = CircleShape
+                )
+        )
+
+        // Concentric Inner Gold Bevel (Layer 4)
+        Box(
+            modifier = Modifier
+                .size((size * 0.64).dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFFFFF6D1).copy(alpha = 0.1f),
+                            Color(0xFF5C4A13).copy(alpha = 0.6f)
+                        )
+                    ),
+                    shape = CircleShape
+                )
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFD4AF37),
+                            Color(0xFFFFF6D1),
+                            Color(0xFF5C4A13)
+                        )
+                    ),
+                    shape = CircleShape
+                )
+        )
+
+        // Central 3D AI Text or Golden Star Symbol (Layer 5)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "AI",
+                style = TextStyle(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFFFFF6D1), // Bright highlight at top
+                            Color(0xFFD4AF37), // Solid Metallic Gold
+                            Color(0xFF9E7E1D)  // Deep shadow at bottom
+                        )
+                    ),
+                    fontSize = (size * 0.26).sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.5.sp,
+                    fontFamily = FontFamily.SansSerif
+                )
+            )
+            Text(
+                text = "FINDER",
+                style = TextStyle(
+                    color = Color(0xFFFFF6D1).copy(alpha = 0.7f),
+                    fontSize = (size * 0.08).sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 2.sp
+                )
+            )
+        }
+    }
+}
+
+/**
  * A breathtaking premium dark-and-gold shimmering splash screen.
  * Displays during instant startup preloading to completely eliminate any blank/black screens.
  */
 @Composable
 fun PremiumSplashScreen(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "splash")
-    val alphaPulse by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "alphaPulse"
-    )
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -213,24 +611,8 @@ fun PremiumSplashScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Glowing gold emblem placeholder
-        Box(
-            modifier = Modifier
-                .size(90.dp)
-                .background(Color(0xFF141414), shape = CircleShape)
-                .border(2.dp, MetallicGold.copy(alpha = alphaPulse), CircleShape)
-                .padding(20.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "AI",
-                color = MetallicGold,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = 1.5.sp,
-                modifier = Modifier.alpha(alphaPulse)
-            )
-        }
+        // Glowing 3D gold-metallic shape emblem
+        Premium3DLogo(size = 110)
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -635,10 +1017,17 @@ fun AiToolCard(
     tool: AiTool,
     onCardClicked: (AiTool) -> Unit,
     searchQuery: String = "",
+    isCompactMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
     val context = LocalContext.current
+
+    val cardPaddingVertical = if (isCompactMode) 4.dp else 8.dp
+    val innerPadding = if (isCompactMode) 10.dp else 14.dp
+    val logoSize = if (isCompactMode) 48 else 64
+    val titleFontSize = if (isCompactMode) 14.sp else 16.sp
+    val descMaxLines = if (isCompactMode) 1 else 2
 
     // Optimize image loading recompositions by remembering the ImageRequest instance
     val imageRequest = remember(tool.imageUrl) {
@@ -657,7 +1046,7 @@ fun AiToolCard(
         shape = RoundedCornerShape(18.dp),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = cardPaddingVertical)
             .border(
                 width = 0.5.dp,
                 color = MetallicGold.copy(alpha = 0.15f),
@@ -668,15 +1057,15 @@ fun AiToolCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(innerPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Elegant circular Image Container with crossfade, fallback, and gold border
             Box(
                 modifier = Modifier
-                    .size(64.dp)
+                    .size(logoSize.dp)
                     .clip(CircleShape)
-                    .border(1.5.dp, MetallicGold, CircleShape),
+                    .border(if (isCompactMode) 1.dp else 1.5.dp, MetallicGold, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 if (!isImageError && tool.imageUrl.isNotEmpty()) {
@@ -688,39 +1077,12 @@ fun AiToolCard(
                         onError = { isImageError = true }
                     )
                 } else {
-                    // Premium custom letter emblem fallback with stable gold-metallic gradient
-                    val stableColorIndex = remember(tool.name) { tool.name.hashCode() }
-                    val gradient = remember(stableColorIndex) {
-                        val variant = stableColorIndex % 3
-                        val startColor = when (variant) {
-                            0 -> Color(0xFF1F1805)
-                            1 -> Color(0xFF141414)
-                            else -> Color(0xFF2B2005)
-                        }
-                        val endColor = when (variant) {
-                            0 -> Color(0xFF382A07)
-                            1 -> Color(0xFF2E2405)
-                            else -> Color(0xFF1C1402)
-                        }
-                        Brush.linearGradient(colors = listOf(startColor, endColor))
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(gradient),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = tool.name.take(1).uppercase(),
-                            color = MetallicGold,
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 22.sp
-                        )
-                    }
+                    // Remove alphabet placeholders and render a premium 3D gold-metallic shield/logo instead!
+                    Premium3DLogo(size = logoSize)
                 }
             }
 
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(innerPadding))
 
             // Text Info & Direct Action
             Column(
@@ -738,7 +1100,7 @@ fun AiToolCard(
                         style = TextStyle(
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp,
+                            fontSize = titleFontSize,
                             letterSpacing = 0.2.sp
                         ),
                         maxLines = 1,
@@ -761,7 +1123,7 @@ fun AiToolCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(if (isCompactMode) 3.dp else 6.dp))
 
                 // Description with Search Highlight
                 HighlightedText(
@@ -772,7 +1134,7 @@ fun AiToolCard(
                         fontSize = 12.sp,
                         lineHeight = 16.sp
                     ),
-                    maxLines = 2,
+                    maxLines = descMaxLines,
                     overflow = TextOverflow.Ellipsis
                 )
             }
@@ -1021,34 +1383,8 @@ fun AiDetailOverlay(
                                     onError = { isImageError = true }
                                 )
                             } else {
-                                val stableColorIndex = remember(tool.name) { tool.name.hashCode() }
-                                val gradient = remember(stableColorIndex) {
-                                    val variant = stableColorIndex % 3
-                                    val startColor = when (variant) {
-                                        0 -> Color(0xFF1F1805)
-                                        1 -> Color(0xFF141414)
-                                        else -> Color(0xFF2B2005)
-                                    }
-                                    val endColor = when (variant) {
-                                        0 -> Color(0xFF382A07)
-                                        1 -> Color(0xFF2E2405)
-                                        else -> Color(0xFF1C1402)
-                                    }
-                                    Brush.linearGradient(colors = listOf(startColor, endColor))
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(gradient),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = tool.name.take(1).uppercase(),
-                                        color = MetallicGold,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        fontSize = 28.sp
-                                    )
-                                }
+                                // Remove alphabet placeholders and render a premium 3D gold-metallic shield/logo instead!
+                                Premium3DLogo(size = 76)
                             }
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -1430,6 +1766,15 @@ fun LiteBrowserDialog(
                                 webChromeClient = object : android.webkit.WebChromeClient() {
                                     override fun onProgressChanged(view: WebView?, newProgress: Int) {
                                         progress = newProgress
+                                    }
+                                }
+                                setDownloadListener { url, _, _, _, _ ->
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                        ctx.startActivity(intent)
+                                        Toast.makeText(ctx, "Handing download over to system handler", Toast.LENGTH_SHORT).show()
+                                    } catch (e: Exception) {
+                                        Toast.makeText(ctx, "Download failed: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                                 loadUrl(initialUrl)

@@ -68,6 +68,12 @@ class HomeViewModel @Inject constructor(
     private val _recentlyViewedIds = MutableStateFlow<List<String>>(emptyList())
     val recentlyViewedIds: StateFlow<List<String>> = _recentlyViewedIds.asStateFlow()
 
+    private val _isCompactMode = MutableStateFlow(false)
+    val isCompactMode: StateFlow<Boolean> = _isCompactMode.asStateFlow()
+
+    private val _defaultSearchEngine = MutableStateFlow("Google")
+    val defaultSearchEngine: StateFlow<String> = _defaultSearchEngine.asStateFlow()
+
     private val _syncTrigger = MutableStateFlow(0)
 
     // Network Callbacks
@@ -89,6 +95,10 @@ class HomeViewModel @Inject constructor(
         // Load Persistent Favorites and History
         _favoriteIds.value = prefs.getStringSet("favorites", emptySet()) ?: emptySet()
         _recentlyViewedIds.value = prefs.getString("recently_viewed", "")?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+
+        // Load Persistent Preferences
+        _isCompactMode.value = prefs.getBoolean("compact_mode", false)
+        _defaultSearchEngine.value = prefs.getString("search_engine", "Google") ?: "Google"
 
         // Initial network check
         _isNetworkAvailable.value = isCurrentlyConnected()
@@ -217,6 +227,26 @@ class HomeViewModel @Inject constructor(
         }
         _recentlyViewedIds.value = current
         prefs.edit().putString("recently_viewed", current.joinToString(",")).apply()
+    }
+
+    fun toggleCompactMode(enabled: Boolean) {
+        _isCompactMode.value = enabled
+        prefs.edit().putBoolean("compact_mode", enabled).apply()
+    }
+
+    fun selectSearchEngine(engine: String) {
+        _defaultSearchEngine.value = engine
+        prefs.edit().putString("search_engine", engine).apply()
+    }
+
+    fun clearAllHistory() {
+        _recentlyViewedIds.value = emptyList()
+        prefs.edit().remove("recently_viewed").apply()
+    }
+
+    fun clearAllFavorites() {
+        _favoriteIds.value = emptySet()
+        prefs.edit().remove("favorites").apply()
     }
 
     fun retryConnection() {

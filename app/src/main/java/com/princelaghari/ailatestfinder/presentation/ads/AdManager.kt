@@ -51,15 +51,28 @@ class AdManager @Inject constructor() {
      */
     fun initialize(context: Context) {
         val appContext = context.applicationContext
-        try {
-            val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
-            if (bId.isNotEmpty()) bannerId = bId
-            val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
-            if (iId.isNotEmpty()) interstitialId = iId
-            val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
-            if (rId.isNotEmpty()) rewardedId = rId
-        } catch (e: Exception) {
-            // Keep test fallbacks
+        val isDebug = (appContext.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+        if (isDebug) {
+            Log.d(TAG, "AdManager: Running in DEBUG mode. Forcing Google standard Test Ad Unit IDs.")
+            bannerId = TEST_BANNER_ID
+            interstitialId = TEST_INTERSTITIAL_ID
+            rewardedId = TEST_REWARDED_ID
+        } else {
+            Log.d(TAG, "AdManager: Running in RELEASE mode. Securely loading Real Production Ad Unit IDs.")
+            try {
+                val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
+                if (bId.isNotEmpty()) bannerId = bId
+                val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
+                if (iId.isNotEmpty()) interstitialId = iId
+                val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
+                if (rId.isNotEmpty()) rewardedId = rId
+            } catch (e: Exception) {
+                // Keep test fallbacks on failure
+                bannerId = TEST_BANNER_ID
+                interstitialId = TEST_INTERSTITIAL_ID
+                rewardedId = TEST_REWARDED_ID
+            }
         }
 
         if (isInitialized.compareAndSet(false, true)) {
