@@ -688,18 +688,33 @@ fun AiToolCard(
                         onError = { isImageError = true }
                     )
                 } else {
-                    // Premium custom letter emblem fallback
+                    // Premium custom letter emblem fallback with stable gold-metallic gradient
+                    val stableColorIndex = remember(tool.name) { tool.name.hashCode() }
+                    val gradient = remember(stableColorIndex) {
+                        val variant = stableColorIndex % 3
+                        val startColor = when (variant) {
+                            0 -> Color(0xFF1F1805)
+                            1 -> Color(0xFF141414)
+                            else -> Color(0xFF2B2005)
+                        }
+                        val endColor = when (variant) {
+                            0 -> Color(0xFF382A07)
+                            1 -> Color(0xFF2E2405)
+                            else -> Color(0xFF1C1402)
+                        }
+                        Brush.linearGradient(colors = listOf(startColor, endColor))
+                    }
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0xFF222222)),
+                            .background(gradient),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = tool.name.take(1).uppercase(),
                             color = MetallicGold,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 22.sp
                         )
                     }
                 }
@@ -1006,17 +1021,32 @@ fun AiDetailOverlay(
                                     onError = { isImageError = true }
                                 )
                             } else {
+                                val stableColorIndex = remember(tool.name) { tool.name.hashCode() }
+                                val gradient = remember(stableColorIndex) {
+                                    val variant = stableColorIndex % 3
+                                    val startColor = when (variant) {
+                                        0 -> Color(0xFF1F1805)
+                                        1 -> Color(0xFF141414)
+                                        else -> Color(0xFF2B2005)
+                                    }
+                                    val endColor = when (variant) {
+                                        0 -> Color(0xFF382A07)
+                                        1 -> Color(0xFF2E2405)
+                                        else -> Color(0xFF1C1402)
+                                    }
+                                    Brush.linearGradient(colors = listOf(startColor, endColor))
+                                }
                                 Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .background(Color(0xFF222222)),
+                                        .background(gradient),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = tool.name.take(1).uppercase(),
                                         color = MetallicGold,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 24.sp
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 28.sp
                                     )
                                 }
                             }
