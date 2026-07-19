@@ -5,6 +5,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.core.*
@@ -765,26 +768,56 @@ fun AiToolCard(
 
 /**
  * AdBanner integrates Google AdMob SDK directly utilizing Ad Unit ID dynamically.
+ * Features an absolute, robust crash-safety wrapper to prevent any app crashes in environments
+ * lacking Google Play Services or AdMob dependencies.
  */
 @Composable
 fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(Color.Black)
-            .padding(vertical = 4.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        AndroidView(
-            modifier = Modifier.fillMaxWidth(),
-            factory = { context ->
-                AdView(context).apply {
-                    setAdSize(AdSize.BANNER)
-                    this.adUnitId = adUnitId
-                    loadAd(AdRequest.Builder().build())
-                }
-            }
-        )
+    var hasError by remember { mutableStateOf(false) }
+
+    if (hasError) {
+        // Fallback gracefully without crashing the app, showing a beautiful subtle premium brand layout
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(Color(0xFF141414))
+                .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Premium AI Experience Portal",
+                color = MetallicGold.copy(alpha = 0.4f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp
+            )
+        }
+    } else {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .background(Color.Black)
+                .padding(vertical = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxWidth(),
+                factory = { context ->
+                    try {
+                        AdView(context).apply {
+                            setAdSize(AdSize.BANNER)
+                            this.adUnitId = adUnitId.ifEmpty { "ca-app-pub-3940256099942544/6300978111" }
+                            loadAd(AdRequest.Builder().build())
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("AdBanner", "Failed to construct AdView: ${e.localizedMessage}", e)
+                        hasError = true
+                        android.view.View(context) // Return dummy safe view
+                    }
+                },
+                update = { _ -> }
+            )
+        }
     }
 }
 
@@ -879,6 +912,7 @@ fun AiDetailOverlay(
     tool: AiTool,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
+    onOpenUrl: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1089,7 +1123,7 @@ fun AiDetailOverlay(
 
                     // Primary Official Website custom tab button
                     Button(
-                        onClick = { openUrlWithChromeCustomTabs(context, tool.toolUrl) },
+                        onClick = { onOpenUrl(tool.toolUrl) },
                         colors = ButtonDefaults.buttonColors(containerColor = MetallicGold),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -1147,6 +1181,233 @@ fun AiDetailOverlay(
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * High premium-integrated secure web-portal dialog overlay.
+ * Opens websites inside the application in an elegant dark web wrapper.
+ */
+@Composable
+fun LiteBrowserDialog(
+    initialUrl: String,
+    onDismiss: () -> Unit
+) {
+    var webViewRef by remember { mutableStateOf<WebView?>(null) }
+    var currentUrl by remember { mutableStateOf(initialUrl) }
+    var progress by remember { mutableStateOf(0) }
+    var isDesktopMode by remember { mutableStateOf(false) }
+    var canGoBack by remember { mutableStateOf(false) }
+    var canGoForward by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color(0xFF0A0A0A)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Top Custom Browser Control Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF141414))
+                        .padding(horizontal = 8.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close Browser",
+                            tint = Color.White
+                        )
+                    }
+
+                    // Back Navigation
+                    IconButton(
+                        onClick = { webViewRef?.goBack() },
+                        enabled = canGoBack,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            text = "◀",
+                            color = if (canGoBack) MetallicGold else Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    // Forward Navigation
+                    IconButton(
+                        onClick = { webViewRef?.goForward() },
+                        enabled = canGoForward,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            text = "▶",
+                            color = if (canGoForward) MetallicGold else Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    // Refresh Button
+                    IconButton(
+                        onClick = { webViewRef?.reload() },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            text = "🔄",
+                            color = MetallicGold,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    // URL display box
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(36.dp)
+                            .background(Color(0xFF1F1F1F), RoundedCornerShape(8.dp))
+                            .border(0.5.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 10.dp),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        Text(
+                            text = currentUrl.replace("https://", "").replace("http://", ""),
+                            color = Color.LightGray,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    // Desktop Mode Toggle
+                    IconButton(
+                        onClick = {
+                            isDesktopMode = !isDesktopMode
+                            webViewRef?.let { webView ->
+                                val settings = webView.settings
+                                if (isDesktopMode) {
+                                    settings.userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                                    settings.useWideViewPort = true
+                                    settings.loadWithOverviewMode = true
+                                } else {
+                                    settings.userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                                    settings.useWideViewPort = false
+                                    settings.loadWithOverviewMode = false
+                                }
+                                webView.reload()
+                            }
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            text = if (isDesktopMode) "📱" else "🖥️",
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    // External Browser Button
+                    IconButton(
+                        onClick = { openUrlWithChromeCustomTabs(context, currentUrl) },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Open in External Tab",
+                            tint = MetallicGold,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                // Progress Bar in Metallic Gold
+                if (progress < 100) {
+                    LinearProgressIndicator(
+                        progress = { progress / 100f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(2.dp),
+                        color = MetallicGold,
+                        trackColor = Color.Transparent
+                    )
+                } else {
+                    Spacer(modifier = Modifier.height(2.dp))
+                }
+
+                // WebView Container
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    AndroidView(
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { ctx ->
+                            WebView(ctx).apply {
+                                settings.apply {
+                                    javaScriptEnabled = true
+                                    domStorageEnabled = true
+                                    databaseEnabled = true
+                                    allowFileAccess = true
+                                    allowContentAccess = true
+                                    userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                                }
+                                webViewClient = object : WebViewClient() {
+                                    override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                                        url?.let { currentUrl = it }
+                                        view?.let {
+                                            canGoBack = it.canGoBack()
+                                            canGoForward = it.canGoForward()
+                                        }
+                                    }
+
+                                    override fun onPageFinished(view: WebView?, url: String?) {
+                                        url?.let { currentUrl = it }
+                                        view?.let {
+                                            canGoBack = it.canGoBack()
+                                            canGoForward = it.canGoForward()
+                                        }
+                                    }
+
+                                    override fun shouldOverrideUrlLoading(view: WebView?, request: android.webkit.WebResourceRequest?): Boolean {
+                                        val uri = request?.url ?: return false
+                                        val urlStr = uri.toString()
+                                        if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
+                                            return false
+                                        }
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, uri)
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            // Handle invalid schema
+                                        }
+                                        return true
+                                    }
+                                }
+                                webChromeClient = object : android.webkit.WebChromeClient() {
+                                    override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                                        progress = newProgress
+                                    }
+                                }
+                                loadUrl(initialUrl)
+                                webViewRef = this
+                            }
+                        },
+                        update = { _ -> }
+                    )
                 }
             }
         }

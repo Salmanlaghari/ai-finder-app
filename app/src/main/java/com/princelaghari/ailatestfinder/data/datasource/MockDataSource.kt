@@ -31,22 +31,88 @@ object MockDataSource {
         // Add our 39 core curated tools first
         list.addAll(curatedTools)
 
-        // Suffixes for generating 1000+ highly realistic, professional AI tools
-        val suffixes = listOf(
-            "Enterprise", "Pro v2", "Plus", "Ultra Studio", "Haiku Server",
-            "Quantum Assistant", "Edge Cloud", "Creator Pro", "Agent Sandbox", "Team Suite",
-            "Studio Premium", "Nexus v4", "Pulse Engine", "Quantum Max", "Mini Developer",
-            "Max Companion", "Private Edge", "Core Agent", "Spark Suite", "Vision Pro",
-            "Analytical Suite", "Flow Creator", "Logic Engine", "Secure Portal", "Developer Hub",
-            "Local Sandbox", "Distributed Agent", "Research Nexus", "Design Studio", "Creative Studio"
+        // Brands prefix pool
+        val prefixes = listOf(
+            "Aura", "Nova", "Apex", "Synthetix", "Prism", "Vortex", "Neural", "Quantum", "Optima", "Kore",
+            "Cortex", "Aether", "Aetherius", "Spectra", "Lumina", "Helix", "Zenith", "Chronos", "Aero", "Veritas",
+            "Alpha", "Omni", "Infinix", "Zephyr", "Axiom", "Vector", "Elysium", "Solas", "Hydra", "Orion",
+            "Titan", "Sirius", "Vega", "Altair", "Polaris", "Capella", "Rigel", "Procyon", "Castor", "Pollux",
+            "Arcturus", "Spica", "Antares", "Fomalhaut", "Deneb", "Regulus", "Aldebaran", "Betelgeuse", "Proxima", "Bellatrix"
         )
 
-        val categories = listOf(
-            "Text AI", "Image AI", "Video AI", "Audio AI", "Music AI", "Coding AI",
-            "Agents", "Business", "Marketing", "Research", "Medical", "Finance",
-            "Legal", "Education", "PDF", "Productivity", "Design", "3D",
-            "Gaming", "Open Source"
+        // Suffix/modules pool
+        val suffixes = listOf(
+            "Vision", "Voice", "Coder", "Audio", "Writer", "Search", "Creative", "Studio", "Analytics", "Translate",
+            "Mind", "Flow", "Sync", "Nexus", "Link", "Edge", "Core", "Hub", "Node", "Space",
+            "Base", "Grid", "Net", "Web", "Cloud"
         )
+
+        // Premium system suffixes pool
+        val systemSuffixes = listOf(
+            "Pro", "Enterprise", "Ultra", "Max", "Prime", "Elite", "Advanced", "Quantum", "Infinity", "Supreme",
+            "Ultimate", "Master", "Expert", "Nova", "Apex", "Alpha", "Beta", "v2", "v3", "v4",
+            "v5", "One", "Go", "Air", "Server"
+        )
+
+        // Suffix to Category mapping
+        val categoryMapping = mapOf(
+            "Vision" to "Image AI", "Creative" to "Image AI", "Art" to "Image AI",
+            "Design" to "Design", "Voice" to "Audio AI", "Audio" to "Audio AI",
+            "Music" to "Music AI", "Writer" to "Text AI", "Text" to "Text AI",
+            "Mind" to "Text AI", "Search" to "Research", "Nexus" to "Research",
+            "Link" to "Productivity", "Edge" to "Agents", "Core" to "Agents",
+            "Hub" to "Productivity", "Node" to "Productivity", "Space" to "Productivity",
+            "Base" to "Productivity", "Grid" to "Productivity", "Net" to "Productivity",
+            "Web" to "Productivity", "Cloud" to "Productivity", "Engine" to "Productivity",
+            "Coder" to "Coding AI", "Forge" to "Coding AI", "Craft" to "Coding AI",
+            "Weave" to "Coding AI", "Analytics" to "Business", "Translate" to "Productivity",
+            "Sync" to "Productivity", "Flow" to "Productivity"
+        )
+
+        // Suffix to Description template
+        val descriptionMapping = mapOf(
+            "Vision" to "Professional text-to-image generator that renders realistic, beautiful vector assets.",
+            "Voice" to "High-fidelity conversational voice replication and speech synthesis framework.",
+            "Coder" to "AI developer workspace that autocomplete complex codebases, refactors syntax, and drafts tests.",
+            "Audio" to "Studio-quality speech filter and background noise eliminator for podcast production.",
+            "Writer" to "Advanced large language model designed for copywriting, strategic blogging, and documentation.",
+            "Search" to "Real-time web research helper that summarizes research citations and indexes academic articles.",
+            "Creative" to "Vector graphic asset synthesizer that produces stunning mockups and brand layouts.",
+            "Studio" to "Interactive multi-modal design canvas with automated color grading and layer extraction.",
+            "Analytics" to "Intelligent analytics pipeline that parses corporate sheets and formats reports.",
+            "Translate" to "Real-time language translation engine with accurate contextual reasoning.",
+            "Mind" to "Strategic brainstorming companion that constructs mind-maps and project guides.",
+            "Flow" to "Automated macro developer that integrates workspace components and coordinates timelines.",
+            "Sync" to "Distributed database synchronization agent that keeps multiple platforms updated.",
+            "Nexus" to "Academic indexing database that unifies research studies and compiles reviews.",
+            "Link" to "Secure file sharing and automated text extraction helper.",
+            "Edge" to "Autonomous task orchestrator that executes local shell scripts and updates local caches.",
+            "Core" to "Low-latency system scheduler and API coordination agent.",
+            "Hub" to "Team-centric workspace platform with automated task generation and notes.",
+            "Node" to "Decentralized server controller and API request orchestrator.",
+            "Space" to "Cloud storage optimizer with automated duplicate file detection.",
+            "Base" to "No-code relational database generator with smart indexing and tables.",
+            "Grid" to "High-performance processing cluster manager with automated load balancing.",
+            "Net" to "Virtual private network configuration helper with smart protocol selection.",
+            "Web" to "Automated frontend design helper that builds production-ready components.",
+            "Cloud" to "Serverless function deployer and cloud orchestration assistant."
+        )
+
+        fun getLogoForCategory(category: String, idx: Int): String {
+            val logos = when (category) {
+                "Text AI" -> listOf(LOGO_CHATGPT, LOGO_CLAUDE, LOGO_GEMINI)
+                "Image AI" -> listOf(LOGO_MIDJOURNEY, LOGO_ADOBE)
+                "Video AI" -> listOf(LOGO_RUNWAY, LOGO_GOOGLE)
+                "Audio AI", "Music AI" -> listOf(LOGO_SUNO, LOGO_GOOGLE)
+                "Coding AI", "Agents" -> listOf(LOGO_GITHUB, LOGO_COPILOT)
+                "Research" -> listOf(LOGO_PERPLEXITY, LOGO_GOOGLE)
+                "Productivity", "PDF" -> listOf(LOGO_NOTION, LOGO_GOOGLE)
+                "Design" -> listOf(LOGO_CANVA, LOGO_ADOBE)
+                "Open Source" -> listOf(LOGO_HUGGINGFACE, LOGO_DEEPSEEK)
+                else -> listOf(LOGO_DEEPSEEK, LOGO_GOOGLE)
+            }
+            return logos[idx % logos.size]
+        }
 
         val pricingOptions = listOf("Free", "Freemium", "Paid", "API")
         val statusOptions = listOf("Trending", "Popular", "New", "Verified")
@@ -58,41 +124,48 @@ object MockDataSource {
             listOf("Web", "Local PC")
         )
 
-        // Generate up to exactly 1020 items to easily exceed the "1000+ tools" goal
-        for (i in list.size..1020) {
-            val baseIndex = i % baseBrands.size
-            val base = baseBrands[baseIndex]
-            val suffix = suffixes[i % suffixes.size]
-            val category = categories[i % categories.size]
+        val startSize = list.size
+        // Generate up to exactly 1020 items in total (exceeding 1000+ limit)
+        for (i in startSize until 1020) {
+            val prefixIndex = (i / (suffixes.size * systemSuffixes.size)) % prefixes.size
+            val suffixIndex = (i / systemSuffixes.size) % suffixes.size
+            val systemIndex = i % systemSuffixes.size
+
+            val prefix = prefixes[prefixIndex]
+            val suffix = suffixes[suffixIndex]
+            val sysSuffix = systemSuffixes[systemIndex]
+
+            val toolName = "$prefix $suffix $sysSuffix"
+            val toolId = "generated-${prefix}-${suffix}-${sysSuffix}-${i}".lowercase()
+
+            val category = categoryMapping[suffix] ?: "Productivity"
+            val baseDesc = descriptionMapping[suffix] ?: "Sleek, high-performance artificial intelligence platform designed to maximize user efficiency and optimize standard domain workflows."
+            val description = "$baseDesc Features state-of-the-art $sysSuffix architecture, advanced low-latency pipelines, and deep enterprise security."
+
+            val imageUrl = getLogoForCategory(category, i)
+            val toolUrl = "https://${prefix.lowercase()}${suffix.lowercase()}.ai?edition=${sysSuffix.lowercase()}"
+
             val pricing = pricingOptions[i % pricingOptions.size]
             val status = statusOptions[i % statusOptions.size]
             val platforms = platformPresets[i % platformPresets.size]
-            val launchYear = (2022 + (i % 4)).toString()
-
-            val toolName = "${base.name} $suffix"
-            val toolId = "${base.id}-$suffix-${i}".lowercase().replace(" ", "-")
-            val toolUrl = "${base.baseUrl}?edition=${suffix.lowercase()}"
-
-            // Format highly realistic, professional developer & company names
-            val developer = "${base.developer} Team"
-            val company = base.company
-
-            val description = "High-performance specialized edition of ${base.name} built for $category optimization. Features enterprise-grade $suffix architecture, advanced low-latency pipelines, contextually-aware logic orchestration, and absolute privacy compliance."
+            val launchYear = (2022 + (i % 3)).toString()
+            val developer = "$prefix Team"
+            val company = "$prefix Inc."
 
             val tags = listOf(
-                base.name.lowercase(),
+                prefix.lowercase(),
                 suffix.lowercase(),
+                sysSuffix.lowercase(),
                 category.lowercase(),
                 "premium",
-                "ai assistant",
-                "professional"
+                "ai"
             )
 
             val alternatives = listOf(
                 "ChatGPT",
                 "Claude 3.5 Sonnet",
                 "Google Gemini 1.5 Pro"
-            ).filter { !it.startsWith(base.name) }
+            )
 
             list.add(
                 AiTool(
@@ -100,7 +173,7 @@ object MockDataSource {
                     name = toolName,
                     category = category,
                     description = description,
-                    imageUrl = base.logo,
+                    imageUrl = imageUrl,
                     toolUrl = toolUrl,
                     pricing = pricing,
                     platforms = platforms,
@@ -116,33 +189,6 @@ object MockDataSource {
 
         list
     }
-
-    private data class BaseBrand(
-        val id: String,
-        val name: String,
-        val developer: String,
-        val company: String,
-        val baseUrl: String,
-        val logo: String
-    )
-
-    private val baseBrands = listOf(
-        BaseBrand("chatgpt", "ChatGPT", "OpenAI", "OpenAI", "https://chatgpt.com", LOGO_CHATGPT),
-        BaseBrand("claude", "Claude", "Anthropic", "Anthropic", "https://claude.ai", LOGO_CLAUDE),
-        BaseBrand("gemini", "Gemini", "Google DeepMind", "Google", "https://gemini.google.com", LOGO_GEMINI),
-        BaseBrand("grok", "Grok", "xAI", "xAI", "https://x.ai", LOGO_GROK),
-        BaseBrand("deepseek", "DeepSeek", "DeepSeek Inc.", "DeepSeek", "https://deepseek.com", LOGO_DEEPSEEK),
-        BaseBrand("suno", "Suno", "Suno Creators", "Suno", "https://suno.com", LOGO_SUNO),
-        BaseBrand("copilot", "Copilot", "Microsoft & OpenAI", "Microsoft", "https://github.com/features/copilot", LOGO_COPILOT),
-        BaseBrand("perplexity", "Perplexity", "Perplexity AI Team", "Perplexity AI", "https://perplexity.ai", LOGO_PERPLEXITY),
-        BaseBrand("midjourney", "Midjourney", "Midjourney Lab", "Midjourney", "https://midjourney.com", LOGO_MIDJOURNEY),
-        BaseBrand("runway", "Runway", "Runway AI Inc.", "Runway", "https://runwayml.com", LOGO_RUNWAY),
-        BaseBrand("huggingface", "Hugging Face", "Hugging Face Team", "Hugging Face", "https://huggingface.co", LOGO_HUGGINGFACE),
-        BaseBrand("notion", "Notion AI", "Notion Labs", "Notion", "https://notion.so", LOGO_NOTION),
-        BaseBrand("github", "GitHub Copilot", "GitHub Team", "GitHub", "https://github.com", LOGO_GITHUB),
-        BaseBrand("adobe", "Adobe Firefly", "Adobe Creative Team", "Adobe", "https://adobe.com", LOGO_ADOBE),
-        BaseBrand("canva", "Canva Magic Studio", "Canva Design Team", "Canva", "https://canva.com", LOGO_CANVA)
-    )
 
     private val curatedTools = listOf(
         AiTool(

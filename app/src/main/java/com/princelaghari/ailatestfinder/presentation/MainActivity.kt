@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,6 +75,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(viewModel: HomeViewModel) {
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val aiTools by viewModel.filteredList.collectAsState()
@@ -94,6 +96,7 @@ fun MainScreen(viewModel: HomeViewModel) {
 
     // Overlay active selection state
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
+    var activeBrowserUrl by remember { mutableStateOf<String?>(null) }
 
     // Dynamically filter active list on Drawer clicks
     val activeList = remember(aiTools, activeViewMode, favoriteIds, recentlyViewedIds) {
@@ -112,10 +115,14 @@ fun MainScreen(viewModel: HomeViewModel) {
 
     // Lazy list pagination trigger
     val listState = rememberLazyListState()
-    val shouldLoadMore = remember {
+    val visibleItemLimit by viewModel.visibleItemLimit.collectAsState()
+    val shouldLoadMore = remember(visibleItemLimit) {
         derivedStateOf {
+            val totalCount = listState.layoutInfo.totalItemsCount
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisibleItem != null && lastVisibleItem.index >= listState.layoutInfo.totalItemsCount - 4
+            lastVisibleItem != null &&
+                totalCount >= visibleItemLimit &&
+                lastVisibleItem.index >= totalCount - 4
         }
     }
     LaunchedEffect(shouldLoadMore.value) {
@@ -308,7 +315,10 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 fontSize = 13.sp,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { viewModel.onSearchQueryChanged(name) }
+                                    .clickable {
+                                        viewModel.onSearchQueryChanged(name)
+                                        focusManager.clearFocus()
+                                    }
                                     .padding(horizontal = 8.dp, vertical = 8.dp)
                             )
                         }
@@ -476,7 +486,16 @@ fun MainScreen(viewModel: HomeViewModel) {
                 tool = tool,
                 isFavorite = favoriteIds.contains(tool.id),
                 onToggleFavorite = { viewModel.toggleFavorite(tool.id) },
+                onOpenUrl = { url -> activeBrowserUrl = url },
                 onDismiss = { selectedToolForDetail = null }
+            )
+        }
+
+        // High premium-integrated secure web-portal dialog overlay
+        activeBrowserUrl?.let { url ->
+            LiteBrowserDialog(
+                initialUrl = url,
+                onDismiss = { activeBrowserUrl = null }
             )
         }
 

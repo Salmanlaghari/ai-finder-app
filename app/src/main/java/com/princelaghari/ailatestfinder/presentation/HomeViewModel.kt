@@ -154,13 +154,22 @@ class HomeViewModel @Inject constructor(
 
     /**
      * Instantly suggests AI tool names as suggestions based on typed input.
+     * Automatically hides suggestions once an exact match is typed or selected to keep results visible.
      */
     val suggestions: StateFlow<List<String>> = _searchQuery.map { query ->
-        if (query.trim().length < 2) emptyList()
+        val trimmed = query.trim()
+        if (trimmed.length < 2) emptyList()
         else {
-            val lcQuery = query.lowercase().trim()
+            val lcQuery = trimmed.lowercase()
             val masterList = listOf("ChatGPT", "Claude 3.5 Sonnet", "Gemini", "Grok", "DeepSeek", "Perplexity", "Mistral", "Qwen", "Midjourney", "Google Veo", "OpenAI Sora", "Luma Dream Machine", "Suno AI", "GitHub Copilot", "Cursor AI")
-            masterList.filter { it.lowercase().contains(lcQuery) }
+
+            // If the search query exactly matches any of the suggestions, hide the suggestions list
+            val exactMatch = masterList.any { it.equals(trimmed, ignoreCase = true) }
+            if (exactMatch) {
+                emptyList()
+            } else {
+                masterList.filter { it.lowercase().contains(lcQuery) }
+            }
         }
     }.stateIn(
         scope = viewModelScope,
