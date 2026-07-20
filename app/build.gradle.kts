@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -25,15 +27,28 @@ android {
     }
 
     signingConfigs {
-        create("premium") {
-            // Safe automated keystore lookup.
-            // On GitHub Actions we generate "temp-keystore.jks" in the root directory.
-            val keystoreFile = rootProject.file("temp-keystore.jks")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = "password123"
-                keyAlias = "premiumalias"
-                keyPassword = "password123"
+        create("release") {
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                val properties = Properties()
+                keystorePropertiesFile.inputStream().use { properties.load(it) }
+
+                val keyFile = rootProject.file(properties.getProperty("storeFile"))
+                if (keyFile.exists()) {
+                    storeFile = keyFile
+                    storePassword = properties.getProperty("storePassword")
+                    keyAlias = properties.getProperty("keyAlias")
+                    keyPassword = properties.getProperty("keyPassword")
+                }
+            } else {
+                // Fallback for automated environment pipelines (like GHA)
+                val keystoreFile = rootProject.file("temp-keystore.jks")
+                if (keystoreFile.exists()) {
+                    storeFile = keystoreFile
+                    storePassword = "password123"
+                    keyAlias = "premiumalias"
+                    keyPassword = "password123"
+                }
             }
         }
     }
@@ -41,11 +56,6 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
-            // If the premium keystore is found, use it to sign debug builds to bypass Play Protect
-            val keystoreFile = rootProject.file("temp-keystore.jks")
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("premium")
-            }
         }
         release {
             isMinifyEnabled = true
@@ -54,9 +64,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            val keystoreFile = rootProject.file("temp-keystore.jks")
-            if (keystoreFile.exists()) {
-                signingConfig = signingConfigs.getByName("premium")
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            val tempKeystoreFile = rootProject.file("temp-keystore.jks")
+            if (keystorePropertiesFile.exists() || tempKeystoreFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
             }
         }
     }

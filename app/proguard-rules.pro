@@ -34,3 +34,16 @@
     public static int v(...);
     public static int d(...);
 }
+
+# Room Database Rules
+-keep class * extends androidx.room.RoomDatabase
+-keep class * extends androidx.room.Dao
+-keep class com.princelaghari.ailatestfinder.data.local.entity.** { *; }
+-dontwarn androidx.room.paging.**
+
+# Coil Image Loader Rules
+-keep class coil.** { *; }
+-dontwarn coil.**
+
+# Kotlin Coroutines Rules
+-keep class kotlinx.coroutines.** { *; }

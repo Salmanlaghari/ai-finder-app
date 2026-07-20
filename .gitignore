@@ -1,5 +1,20 @@
-# Ignore Gradle project-specific cache directory
+# Gradle cache and build outputs
 .gradle
+/build
+app/build
 
-# Ignore Gradle build output directory
-build
+# Local configuration files
+local.properties
+keystore.properties
+
+# Signing keystores
+*.jks
+*.keystore
+
+# IDE specific files
+.idea
+*.iml
+.DS_Store
+
+# Log files
+*.log
