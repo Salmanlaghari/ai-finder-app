@@ -1164,7 +1164,7 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
             // Production Release Build: Strictly use your real production Ad Unit ID!
             val forbiddenLiteral = "3940256" + "099942544"
             if (adUnitId.isEmpty() || adUnitId.contains(forbiddenLiteral)) {
-                "ca-app-pub-4217735637689098/2602497624"
+                "ca-app-pub-8178045957849630/1752932881"
             } else {
                 adUnitId
             }

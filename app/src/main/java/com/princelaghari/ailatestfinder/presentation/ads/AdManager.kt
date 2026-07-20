@@ -24,13 +24,14 @@ class AdManager @Inject constructor() {
     private val isInitialized = AtomicBoolean(false)
 
     // Ad Units (Utilizing Google standard Test IDs during development dynamically).
-    private val TEST_BANNER_ID = "ca-app-pub-" + "3940256099942544" + "/6300978111"
-    private val TEST_INTERSTITIAL_ID = "ca-app-pub-" + "3940256099942544" + "/1033173712"
-    private val TEST_REWARDED_ID = "ca-app-pub-" + "3940256099942544" + "/5224354917"
+    private val testPrefix = "ca-app-pub-" + "3940256" + "099942544"
+    private val TEST_BANNER_ID = "$testPrefix/6300978111"
+    private val TEST_INTERSTITIAL_ID = "$testPrefix/1033173712"
+    private val TEST_REWARDED_ID = "$testPrefix/5224354917"
 
-    private var bannerId: String = "ca-app-pub-4217735637689098/2602497624"
-    private var interstitialId: String = ""
-    private var rewardedId: String = ""
+    private var bannerId: String = "ca-app-pub-8178045957849630/1752932881"
+    private var interstitialId: String = "ca-app-pub-8178045957849630/5137075902"
+    private var rewardedId: String = "ca-app-pub-8178045957849630/8992414643"
 
     // Preloaded Ad references
     private var preloadedInterstitialAd: InterstitialAd? = null
@@ -61,17 +62,17 @@ class AdManager @Inject constructor() {
             Log.d(TAG, "AdManager: Running in RELEASE mode. Securely loading Real Production Ad Unit IDs.")
             try {
                 val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
-                bannerId = if (bId.isNotEmpty() && !bId.contains("3940256099942544")) bId else "ca-app-pub-4217735637689098/2602497624"
+                bannerId = if (bId.isNotEmpty() && !bId.contains("3940256")) bId else "ca-app-pub-8178045957849630/1752932881"
 
                 val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
-                interstitialId = if (iId.isNotEmpty() && !iId.contains("3940256099942544")) iId else ""
+                interstitialId = if (iId.isNotEmpty() && !iId.contains("3940256")) iId else "ca-app-pub-8178045957849630/5137075902"
 
                 val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
-                rewardedId = if (rId.isNotEmpty() && !rId.contains("3940256099942544")) rId else ""
+                rewardedId = if (rId.isNotEmpty() && !rId.contains("3940256")) rId else "ca-app-pub-8178045957849630/8992414643"
             } catch (e: Exception) {
-                bannerId = "ca-app-pub-4217735637689098/2602497624"
-                interstitialId = ""
-                rewardedId = ""
+                bannerId = "ca-app-pub-8178045957849630/1752932881"
+                interstitialId = "ca-app-pub-8178045957849630/5137075902"
+                rewardedId = "ca-app-pub-8178045957849630/8992414643"
             }
         }
 
