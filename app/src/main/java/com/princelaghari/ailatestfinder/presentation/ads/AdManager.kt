@@ -62,16 +62,17 @@ class AdManager @Inject constructor() {
             Log.d(TAG, "AdManager: Running in RELEASE mode. Securely loading Real Production Ad Unit IDs.")
             try {
                 val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
-                if (bId.isNotEmpty()) bannerId = bId
+                bannerId = if (bId.isNotEmpty() && !bId.contains("3940256099942544")) bId else "ca-app-pub-4217735637689098/2602497624"
+
                 val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
-                if (iId.isNotEmpty()) interstitialId = iId
+                interstitialId = if (iId.isNotEmpty() && !iId.contains("3940256099942544")) iId else ""
+
                 val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
-                if (rId.isNotEmpty()) rewardedId = rId
+                rewardedId = if (rId.isNotEmpty() && !rId.contains("3940256099942544")) rId else ""
             } catch (e: Exception) {
-                // Keep test fallbacks on failure
-                bannerId = TEST_BANNER_ID
-                interstitialId = TEST_INTERSTITIAL_ID
-                rewardedId = TEST_REWARDED_ID
+                bannerId = "ca-app-pub-4217735637689098/2602497624"
+                interstitialId = ""
+                rewardedId = ""
             }
         }
 
@@ -102,6 +103,7 @@ class AdManager @Inject constructor() {
      * Preloads an Interstitial Ad in the background with exponential backoff retry.
      */
     fun preloadInterstitial(context: Context) {
+        if (interstitialId.isEmpty()) return
         if (preloadedInterstitialAd != null || isInterstitialLoading.get()) return
 
         isInterstitialLoading.set(true)
@@ -143,6 +145,7 @@ class AdManager @Inject constructor() {
      * Preloads a Rewarded Ad with exponential backoff retry.
      */
     fun preloadRewarded(context: Context) {
+        if (rewardedId.isEmpty()) return
         if (preloadedRewardedAd != null || isRewardedLoading.get()) return
 
         isRewardedLoading.set(true)

@@ -1151,6 +1151,23 @@ fun AiToolCard(
 @Composable
 fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     var hasError by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val isDebug = remember(context) { (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
+
+    // Resolve final safe ad unit id to display.
+    // In Production Release builds, strictly force your real verified Ad Unit ID and never load test IDs.
+    val finalAdUnitId = remember(adUnitId, isDebug) {
+        if (isDebug) {
+            adUnitId.ifEmpty { "ca-app-pub-3940256099942544/6300978111" }
+        } else {
+            // Production Release Build: Strictly use your real production Ad Unit ID!
+            if (adUnitId.isEmpty() || adUnitId.contains("3940256099942544")) {
+                "ca-app-pub-4217735637689098/2602497624"
+            } else {
+                adUnitId
+            }
+        }
+    }
 
     if (hasError) {
         // Fallback gracefully without crashing the app, showing a beautiful subtle premium brand layout
@@ -1179,17 +1196,17 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
         ) {
             AndroidView(
                 modifier = Modifier.fillMaxWidth(),
-                factory = { context ->
+                factory = { ctx ->
                     try {
-                        AdView(context).apply {
+                        AdView(ctx).apply {
                             setAdSize(AdSize.BANNER)
-                            this.adUnitId = adUnitId.ifEmpty { "ca-app-pub-3940256099942544/6300978111" }
+                            this.adUnitId = finalAdUnitId
                             loadAd(AdRequest.Builder().build())
                         }
                     } catch (e: Exception) {
                         android.util.Log.e("AdBanner", "Failed to construct AdView: ${e.localizedMessage}", e)
                         hasError = true
-                        android.view.View(context) // Return dummy safe view
+                        android.view.View(ctx) // Return dummy safe view
                     }
                 },
                 update = { _ -> }
