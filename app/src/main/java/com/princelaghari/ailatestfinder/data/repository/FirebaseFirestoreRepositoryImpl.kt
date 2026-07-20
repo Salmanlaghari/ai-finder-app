@@ -27,7 +27,7 @@ class FirebaseFirestoreRepositoryImpl @Inject constructor(
         // Safe access to Firebase Firestore
         val firestore: FirebaseFirestore? = try {
             FirebaseFirestore.getInstance()
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Log.w(TAG, "Firebase not initialized. Falling back to local dataset.", e)
             null
         }
