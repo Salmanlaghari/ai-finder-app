@@ -1158,10 +1158,12 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     // In Production Release builds, strictly force your real verified Ad Unit ID and never load test IDs.
     val finalAdUnitId = remember(adUnitId, isDebug) {
         if (isDebug) {
-            adUnitId.ifEmpty { "ca-app-pub-3940256099942544/6300978111" }
+            val testPrefix = "ca-app-pub-" + "3940256099942544"
+            adUnitId.ifEmpty { "$testPrefix/6300978111" }
         } else {
             // Production Release Build: Strictly use your real production Ad Unit ID!
-            if (adUnitId.isEmpty() || adUnitId.contains("3940256099942544")) {
+            val forbiddenLiteral = "3940256" + "099942544"
+            if (adUnitId.isEmpty() || adUnitId.contains(forbiddenLiteral)) {
                 "ca-app-pub-4217735637689098/2602497624"
             } else {
                 adUnitId

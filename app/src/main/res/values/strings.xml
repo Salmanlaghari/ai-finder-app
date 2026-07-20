@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Ai Latest Finder</string>
-    <!-- AdMob Application and Unit IDs. Fallback to Google Standard Test IDs -->
+    <!-- AdMob Production Application and Banner IDs -->
     <string name="admob_app_id">ca-app-pub-4217735637689098~7391101516</string>
     <string name="admob_banner_id">ca-app-pub-4217735637689098/2602497624</string>
-    <string name="admob_interstitial_id">ca-app-pub-3940256099942544/1033173712</string>
-    <string name="admob_rewarded_id">ca-app-pub-3940256099942544/5224354917</string>
+    <string name="admob_interstitial_id"></string>
+    <string name="admob_rewarded_id"></string>
 </resources>

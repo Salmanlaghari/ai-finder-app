@@ -28,6 +28,9 @@ android {
 
     signingConfigs {
         create("release") {
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
             val keystorePropertiesFile = rootProject.file("keystore.properties")
             if (keystorePropertiesFile.exists()) {
                 val properties = Properties()
