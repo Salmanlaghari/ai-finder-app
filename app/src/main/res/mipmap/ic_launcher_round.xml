@@ -1,17 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="48dp"
-    android:height="48dp"
+    android:width="108dp"
+    android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Combined Background and Foreground for fallback -->
+
+    <!-- Premium Background Gradient -->
+    <path android:pathData="M0,0h108v108H0z">
+        <gradient
+            android:type="linear"
+            android:startX="0"
+            android:startY="0"
+            android:endX="108"
+            android:endY="108">
+            <item android:color="#0A0712" android:offset="0" />
+            <item android:color="#1A0D36" android:offset="0.5" />
+            <item android:color="#0D2329" android:offset="1.0" />
+        </gradient>
+    </path>
+
+    <!-- Tech concentric rings -->
     <path
-        android:fillColor="#0A0A0A"
-        android:pathData="M0,0h108v108h-108z" />
+        android:pathData="M 54, 54 m -44, 0 a 44,44 0 1,1 88,0 a 44,44 0 1,1 -88,0"
+        android:strokeColor="#1F5A66"
+        android:strokeWidth="0.5" />
     <path
-        android:fillColor="#D4AF37"
-        android:pathData="M30,30 h8 l10,32 h-8 l-2.5,-8 h-7 l-2.5,8 h-8 z M33,48 h4.5 l-2.25,-7 z" />
+        android:pathData="M 54, 54 m -34, 0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0"
+        android:strokeColor="#4C2D8A"
+        android:strokeWidth="0.5" />
+
+    <!-- Stylized Futuristic AI Shield/Bracket Outline -->
     <path
-        android:fillColor="#D4AF37"
-        android:pathData="M58,30 h8 v48 h-8 z" />
+        android:strokeWidth="2.5"
+        android:strokeColor="#3FF0FF"
+        android:strokeLineCap="round"
+        android:pathData="M 34,22 L 22,34 L 22,74 L 34,86 M 74,22 L 86,34 L 86,74 L 74,86" />
+
+    <!-- Highly-polished "A" Letter Path with Purple/Cyan Gradient -->
+    <path
+        android:pathData="M30,36 h8 l9,36 h-8 l-2.25,-9 h-6.5 l-2.25,9 h-8 z M33,54 h4.5 l-2.25,-9 z">
+        <gradient
+            android:type="linear"
+            android:startX="20"
+            android:startY="36"
+            android:endX="47"
+            android:endY="72">
+            <item android:color="#3FF0FF" android:offset="0" />
+            <item android:color="#A78BFA" android:offset="1.0" />
+        </gradient>
+    </path>
+
+    <!-- Highly-polished "I" Letter Path with Purple/Cyan Gradient -->
+    <path
+        android:pathData="M59,36 h8 v36 h-8 z">
+        <gradient
+            android:type="linear"
+            android:startX="59"
+            android:startY="36"
+            android:endX="67"
+            android:endY="72">
+            <item android:color="#3FF0FF" android:offset="0" />
+            <item android:color="#A78BFA" android:offset="1.0" />
+        </gradient>
+    </path>
+
+    <!-- Pulsing Core Glowing Star Node -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,20 L55,24 L59,25 L55,26 L54,30 L53,26 L49,25 L53,24 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,78 L55,82 L59,83 L55,84 L54,88 L53,84 L49,83 L53,82 z" />
 </vector>
