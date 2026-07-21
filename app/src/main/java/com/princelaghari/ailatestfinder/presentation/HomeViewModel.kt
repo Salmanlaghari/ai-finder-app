@@ -9,6 +9,7 @@ import android.net.NetworkRequest
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.princelaghari.ailatestfinder.data.datasource.MockDataSource
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.domain.usecase.GetAiToolsUseCase
 import com.princelaghari.ailatestfinder.presentation.ads.AdManager
@@ -198,23 +199,33 @@ class HomeViewModel @Inject constructor(
     )
 
     /**
-     * Combines browserSearchQuery and performs a live, asynchronous internet search.
-     * Emits search loading states, live parsed DuckDuckGo Lite results, or falls back to Room offline matching.
+     * Combines browserSearchQuery and performs a highly responsive live internet search.
+     * Instantly renders local, verified results first (no lag), then asynchronously streams in live web news/updates.
      */
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val browserResults: StateFlow<List<AiTool>> = _browserSearchQuery
-        .debounce(450)
+        .debounce(300)
         .flatMapLatest { query ->
             flow {
                 val trimmed = query.trim()
                 if (trimmed.isEmpty()) {
                     emit(getCuratedBrowserDefaults())
                 } else {
-                    // Emit temporary loading indicator card
-                    emit(
-                        listOf(
+                    // 1. Instantly query our 1,020 tools database (zero lag, restores "Google" curated tools!)
+                    val localMatches = MockDataSource.aiTools.filter { tool ->
+                        tool.name.lowercase().contains(trimmed.lowercase()) ||
+                        tool.description.lowercase().contains(trimmed.lowercase()) ||
+                        tool.tags.any { it.lowercase().contains(trimmed.lowercase()) }
+                    }
+                    emit(localMatches)
+
+                    // 2. Stream in live internet search results asynchronously if network is active
+                    if (isCurrentlyConnected()) {
+                        // Append temporary loading indicator card to end of local matches
+                        val withLoading = localMatches.toMutableList()
+                        withLoading.add(
                             AiTool(
-                                id = "b-loading",
+                                id = "b-loading-indicator",
                                 name = "Searching Live Web...",
                                 category = "Web Search",
                                 description = "Connecting to global network search indexes to pull live AI model news & tools...",
@@ -230,19 +241,13 @@ class HomeViewModel @Inject constructor(
                                 alternatives = emptyList()
                             )
                         )
-                    )
+                        emit(withLoading)
 
-                    // Execute Network query on Dispatchers.IO background thread
-                    val liveResults = performLiveWebSearch(trimmed)
-                    if (liveResults.isEmpty()) {
-                        // Resilient Fallback to offline local search tool matching
-                        val localFallback = aiTools.value.filter { tool ->
-                            tool.name.lowercase().contains(trimmed.lowercase()) ||
-                            tool.description.lowercase().contains(trimmed.lowercase())
-                        }
-                        emit(localFallback)
-                    } else {
-                        emit(liveResults)
+                        // Fetch live results from DuckDuckGo
+                        val liveResults = performLiveWebSearch(trimmed)
+                        // Merge and eliminate duplicates by target URL
+                        val merged = (localMatches + liveResults).distinctBy { it.toolUrl.lowercase().trim() }
+                        emit(merged)
                     }
                 }
             }
@@ -359,38 +364,54 @@ class HomeViewModel @Inject constructor(
     private fun performLiveWebSearch(query: String): List<AiTool> {
         val results = mutableListOf<AiTool>()
         try {
-            // Force AI relevance in keywords to constrain search output parameters
-            val targetQuery = Uri.encode("$query ai tools models news")
-            val url = java.net.URL("https://html.duckduckgo.com/html/?q=$targetQuery")
+            val targetQuery = Uri.encode("$query ai")
+            val url = java.net.URL("https://lite.duckduckgo.com/lite/")
             val conn = url.openConnection() as java.net.HttpURLConnection
-            conn.requestMethod = "GET"
+            conn.requestMethod = "POST"
             conn.setRequestProperty(
                 "User-Agent",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             )
-            conn.connectTimeout = 7000
-            conn.readTimeout = 7000
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            conn.connectTimeout = 6000
+            conn.readTimeout = 6000
+            conn.doOutput = true
+
+            conn.outputStream.use { os ->
+                os.write("q=$targetQuery&kl=&df=".toByteArray())
+            }
 
             val html = conn.inputStream.bufferedReader().use { it.readText() }
 
-            // Match hyperlinks and snippets: <a class="result__a" href="...">Title</a>
-            val titleRegex = """class="result__a"\s+href="([^"]+)"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-            val snippetRegex = """class="result__snippet"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+            val links = mutableListOf<Pair<String, String>>()
 
-            val titleMatches = titleRegex.findAll(html).toList()
-            val snippetMatches = snippetRegex.findAll(html).toList()
+            // Match DDG Lite patterns
+            val pattern1 = """class="result-link"\s+href="([^"]+)"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+            pattern1.findAll(html).forEach { match ->
+                links.add(Pair(match.groupValues[1], match.groupValues[2]))
+            }
 
-            val count = minOf(titleMatches.size, 15)
+            if (links.isEmpty()) {
+                val pattern2 = """href="([^"]+)"\s+class="result-link"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+                pattern2.findAll(html).forEach { match ->
+                    links.add(Pair(match.groupValues[1], match.groupValues[2]))
+                }
+            }
+
+            val snippets = mutableListOf<String>()
+            val snippetPattern = """class="result-snippet"[^>]*>(.*?)</td>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+            snippetPattern.findAll(html).forEach { match ->
+                snippets.add(match.groupValues[1])
+            }
+
+            val count = minOf(links.size, 15)
             for (i in 0 until count) {
-                val titleMatch = titleMatches[i]
-                val rawLink = titleMatch.groupValues[1]
+                val (rawLink, rawTitle) = links[i]
                 val decodedLink = extractRealUrl(rawLink)
 
-                // Skip looping web result page redirections
                 if (decodedLink.contains("duckduckgo.com") && !decodedLink.contains("uddg=")) continue
 
-                // Clean title elements
-                val cleanTitle = titleMatch.groupValues[2]
+                val cleanTitle = rawTitle
                     .replace("<[^>]*>".toRegex(), "")
                     .replace("&amp;", "&")
                     .replace("&quot;", "\"")
@@ -399,9 +420,8 @@ class HomeViewModel @Inject constructor(
                     .replace("&gt;", ">")
                     .trim()
 
-                // Clean snippet elements
-                var cleanSnippet = if (i < snippetMatches.size) {
-                    snippetMatches[i].groupValues[1]
+                var cleanSnippet = if (i < snippets.size) {
+                    snippets[i]
                         .replace("<[^>]*>".toRegex(), "")
                         .replace("&amp;", "&")
                         .replace("&quot;", "\"")
@@ -416,7 +436,6 @@ class HomeViewModel @Inject constructor(
                     cleanSnippet = "Visit official portal for latest model news."
                 }
 
-                // Strictly filter for AI relevancy
                 val aiKeywords = listOf("ai", "model", "tool", "news", "learn", "neural", "intelligence", "gpt", "claude", "sora", "deepseek", "midjourney", "music", "audio", "video", "generator", "copilot", "developer", "design", "tech", "github")
                 val isAiRelevant = aiKeywords.any { kw ->
                     cleanTitle.lowercase().contains(kw) || cleanSnippet.lowercase().contains(kw) || decodedLink.lowercase().contains(kw)
@@ -425,7 +444,7 @@ class HomeViewModel @Inject constructor(
                 if (isAiRelevant) {
                     results.add(
                         AiTool(
-                            id = "web-$i-${cleanTitle.hashCode()}",
+                            id = "web-lite-$i-${cleanTitle.hashCode()}",
                             name = cleanTitle,
                             category = "Web Search",
                             description = cleanSnippet,
@@ -443,8 +462,85 @@ class HomeViewModel @Inject constructor(
                     )
                 }
             }
+
+            if (results.isEmpty()) {
+                val standardResults = performStandardWebSearch(query)
+                results.addAll(standardResults)
+            }
+
         } catch (e: Exception) {
-            android.util.Log.e("HomeViewModel", "Live search operation failed", e)
+            android.util.Log.e("HomeViewModel", "Lite search failed, attempting fallback", e)
+            val fallbackResults = performStandardWebSearch(query)
+            results.addAll(fallbackResults)
+        }
+        return results
+    }
+
+    private fun performStandardWebSearch(query: String): List<AiTool> {
+        val results = mutableListOf<AiTool>()
+        try {
+            val targetQuery = Uri.encode("$query ai")
+            val url = java.net.URL("https://html.duckduckgo.com/html/?q=$targetQuery")
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.setRequestProperty(
+                "User-Agent",
+                "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36"
+            )
+            conn.connectTimeout = 6000
+            conn.readTimeout = 6000
+
+            val html = conn.inputStream.bufferedReader().use { it.readText() }
+
+            val titleRegex = """class="result__a"\s+href="([^"]+)"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+            val snippetRegex = """class="result__snippet"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+
+            val titleMatches = titleRegex.findAll(html).toList()
+            val snippetMatches = snippetRegex.findAll(html).toList()
+
+            val count = minOf(titleMatches.size, 10)
+            for (i in 0 until count) {
+                val titleMatch = titleMatches[i]
+                val rawLink = titleMatch.groupValues[1]
+                val decodedLink = extractRealUrl(rawLink)
+
+                if (decodedLink.contains("duckduckgo.com") && !decodedLink.contains("uddg=")) continue
+
+                val cleanTitle = titleMatch.groupValues[2]
+                    .replace("<[^>]*>".toRegex(), "")
+                    .replace("&amp;", "&")
+                    .trim()
+
+                val cleanSnippet = if (i < snippetMatches.size) {
+                    snippetMatches[i].groupValues[1]
+                        .replace("<[^>]*>".toRegex(), "")
+                        .replace("&amp;", "&")
+                        .trim()
+                } else {
+                    "Visit official portal for latest model news."
+                }
+
+                results.add(
+                    AiTool(
+                        id = "web-std-$i-${cleanTitle.hashCode()}",
+                        name = cleanTitle,
+                        category = "Web Search",
+                        description = cleanSnippet,
+                        imageUrl = "",
+                        toolUrl = decodedLink,
+                        pricing = "Free",
+                        platforms = listOf("Web"),
+                        developer = "Verified AI Agent",
+                        company = "Internet",
+                        status = "Verified",
+                        launchYear = "2025",
+                        tags = listOf("live", "ai-verified", "web"),
+                        alternatives = emptyList()
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("HomeViewModel", "Standard fallback search failed", e)
         }
         return results
     }
