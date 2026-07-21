@@ -6,7 +6,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.domain.usecase.GetAiToolsUseCase
@@ -31,14 +31,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    application: Application,
+    private val application: Application,
     private val getAiToolsUseCase: GetAiToolsUseCase,
     private val adManager: AdManager
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     private val prefs = application.getSharedPreferences("ai_latest_finder_prefs", Context.MODE_PRIVATE)
     private val connectivityManager =
-        application.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        application.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
 
     private val _isNetworkAvailable = MutableStateFlow(true)
     val isNetworkAvailable: StateFlow<Boolean> = _isNetworkAvailable.asStateFlow()
@@ -90,7 +90,11 @@ class HomeViewModel @Inject constructor(
 
     init {
         // Initialize AdManager SDK
-        adManager.initialize(application)
+        try {
+            adManager.initialize(application)
+        } catch (e: Throwable) {
+            // Safe bypass
+        }
 
         // Load Persistent Favorites and History
         _favoriteIds.value = prefs.getStringSet("favorites", emptySet()) ?: emptySet()
@@ -105,7 +109,7 @@ class HomeViewModel @Inject constructor(
         try {
             val builder = NetworkRequest.Builder()
                 .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            connectivityManager.registerNetworkCallback(builder.build(), networkCallback)
+            connectivityManager?.registerNetworkCallback(builder.build(), networkCallback)
         } catch (e: Exception) {
             _isNetworkAvailable.value = true
         }
@@ -267,21 +271,18 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun isCurrentlyConnected(): Boolean {
-        val activeNetwork = connectivityManager.activeNetwork ?: return false
-        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+        val manager = connectivityManager ?: return true
+        val activeNetwork = manager.activeNetwork ?: return false
+        val capabilities = manager.getNetworkCapabilities(activeNetwork) ?: return false
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     override fun onCleared() {
         super.onCleared()
         try {
-            connectivityManager.unregisterNetworkCallback(networkCallback)
+            connectivityManager?.unregisterNetworkCallback(networkCallback)
         } catch (e: Exception) {
             // Safe ignore
         }
-    }
-
-    private fun launch(block: suspend () -> Unit) {
-        viewModelScope.launch { block() }
     }
 }

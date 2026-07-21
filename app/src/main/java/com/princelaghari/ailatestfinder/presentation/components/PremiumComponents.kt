@@ -1,11 +1,8 @@
 package com.princelaghari.ailatestfinder.presentation.components
 
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -66,8 +63,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.princelaghari.ailatestfinder.domain.model.AiTool
-import com.princelaghari.ailatestfinder.presentation.theme.MetallicGold
-import com.princelaghari.ailatestfinder.presentation.theme.PaleGold
+import com.princelaghari.ailatestfinder.presentation.theme.*
 
 /**
  * Custom helper to open URLs cleanly in Chrome Custom Tabs, with safe external browser fallback.
@@ -76,7 +72,7 @@ fun openUrlWithChromeCustomTabs(context: Context, url: String) {
     if (url.isEmpty()) return
     try {
         val builder = CustomTabsIntent.Builder()
-        builder.setToolbarColor(android.graphics.Color.parseColor("#0A0A0A"))
+        builder.setToolbarColor(android.graphics.Color.parseColor("#08070C"))
         builder.setShowTitle(true)
         val customTabsIntent = builder.build()
         customTabsIntent.launchUrl(context, Uri.parse(url))
@@ -106,24 +102,28 @@ fun SettingsDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            shape = RoundedCornerShape(24.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(listOf(AmberAccent, VioletAccent)),
+                    shape = RoundedCornerShape(24.dp)
+                )
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(24.dp)
                     .fillMaxWidth()
             ) {
                 Text(
-                    text = "PREMIUM PREFERENCES PANEL",
+                    text = "DASHBOARD PREFERENCES",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MetallicGold,
-                    letterSpacing = 1.2.sp
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AmberAccent,
+                    letterSpacing = 1.5.sp
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -134,26 +134,26 @@ fun SettingsDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = "Compact Card Mode", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        Text(text = "Display tools in a tighter, high-density format", color = Color.Gray, fontSize = 10.sp)
+                        Text(text = "Compact Card Mode", color = TextColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "High-density dashboard-grid formatting", color = TextDimColor, fontSize = 11.sp)
                     }
                     Switch(
                         checked = isCompactMode,
                         onCheckedChange = onToggleCompactMode,
                         colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.Black,
-                            checkedTrackColor = MetallicGold,
-                            uncheckedThumbColor = Color.Gray,
-                            uncheckedTrackColor = Color.DarkGray
+                            checkedThumbColor = CardColor,
+                            checkedTrackColor = AmberAccent,
+                            uncheckedThumbColor = TextDimColor,
+                            uncheckedTrackColor = Card2Color
                         )
                     )
                 }
 
-                HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(color = Card2Color, modifier = Modifier.padding(vertical = 14.dp))
 
                 // External Search Engine selector
-                Text(text = "Default External Search Portal", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "External Search Portal Provider", color = TextColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -162,45 +162,45 @@ fun SettingsDialog(
                         val isSelected = engine == selectedEngine
                         Box(
                             modifier = Modifier
-                                .background(if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(8.dp))
-                                .border(0.5.dp, if (isSelected) MetallicGold else Color.Gray.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                .background(if (isSelected) AmberAccent.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(10.dp))
+                                .border(0.5.dp, if (isSelected) AmberAccent else TextDimColor.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
                                 .clickable { onSelectEngine(engine) }
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
                         ) {
                             Text(
                                 text = engine,
-                                color = if (isSelected) MetallicGold else Color.Gray,
-                                fontSize = 11.sp,
+                                color = if (isSelected) AmberAccent else TextDimColor,
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
 
-                HorizontalDivider(color = Color.DarkGray.copy(alpha = 0.5f), modifier = Modifier.padding(vertical = 12.dp))
+                HorizontalDivider(color = Card2Color, modifier = Modifier.padding(vertical = 14.dp))
 
                 // Data actions
-                Text(text = "Local Cache Management", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Database & Cache Management", color = TextColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
                         onClick = onClearHistory,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = "Clear History", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Clear History", color = TextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                     Button(
                         onClick = onClearFavorites,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF222222)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(text = "Clear Favs", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "Clear Saved", color = TextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -209,7 +209,7 @@ fun SettingsDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(text = "CLOSE", color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "CLOSE PANEL", color = AmberAccent, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold)
                 }
             }
         }
@@ -227,63 +227,69 @@ fun AboutDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            shape = RoundedCornerShape(24.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(listOf(AmberAccent, VioletAccent)),
+                    shape = RoundedCornerShape(24.dp)
+                )
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(24.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Premium3DLogo(size = 64)
+                Premium3DLogo(size = 68)
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Ai Latest Finder",
-                    fontSize = 20.sp,
+                    fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MetallicGold
+                    color = AmberAccent,
+                    letterSpacing = 0.5.sp
                 )
                 Text(
-                    text = "Version 1.0.2 (Release Candidate)",
-                    fontSize = 11.sp,
-                    color = Color.Gray
+                    text = "Dashboard Edition v1.5.0",
+                    fontSize = 12.sp,
+                    color = TextDimColor
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "A flagship catalog application curated by Prince Laghari, compiling over 1000 premium artificial intelligence platforms under a secure, offline-first Clean Architecture sync system.",
-                    fontSize = 12.sp,
-                    color = Color.LightGray,
+                    text = "A flagship cyber-grade dashboard application curated by Prince Laghari, compiling over 1000 premium artificial intelligence platforms under a secure, offline-first Clean Architecture sync system.",
+                    fontSize = 13.sp,
+                    color = TextColor.copy(alpha = 0.85f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 18.sp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Admin & Owner: Prince Laghari\nTech: Jetpack Compose, MVVM, Room, Firestore, AdMob",
+                    fontSize = 11.sp,
+                    color = VioletAccent,
                     textAlign = TextAlign.Center,
                     lineHeight = 16.sp
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Curator & Owner: Prince Laghari\nTech Stack: Jetpack Compose, MVVM, Hilt, Room, Firestore, AdMob SDK",
-                    fontSize = 10.sp,
-                    color = MetallicGold.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 14.sp
-                )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // Buy Me Coffee widget
                 Button(
                     onClick = onBuyMeCoffee,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDD00)),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth(0.9f)
                 ) {
-                    Text(text = "☕ Buy Me a Coffee", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    Text(text = "☕ Buy Me a Coffee", color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
                 TextButton(onClick = onDismiss) {
-                    Text(text = "DISMISS", color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "DISMISS", color = TextDimColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -299,29 +305,33 @@ fun PrivacyPolicyDialog(
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            shape = RoundedCornerShape(24.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(listOf(AmberAccent, VioletAccent)),
+                    shape = RoundedCornerShape(24.dp)
+                )
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(24.dp)
                     .fillMaxWidth()
             ) {
                 Text(
                     text = "PRIVACY POLICY & DATA RIGHTS",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MetallicGold,
-                    letterSpacing = 1.2.sp
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AmberAccent,
+                    letterSpacing = 1.5.sp
                 )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
                 Box(
                     modifier = Modifier
-                        .height(200.dp)
+                        .height(220.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
@@ -335,9 +345,9 @@ fun PrivacyPolicyDialog(
                                 "4. SECURITY\n" +
                                 "All external web routing performed inside our custom Lite Browser uses isolated contexts to safeguard credentials and prevent local script injections.\n\n" +
                                 "By utilizing this app, you fully consent to these terms. For any concerns, contact our Administrator Prince Laghari.",
-                        fontSize = 11.sp,
-                        color = Color.LightGray,
-                        lineHeight = 15.sp
+                        fontSize = 12.sp,
+                        color = TextColor.copy(alpha = 0.8f),
+                        lineHeight = 16.sp
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -345,7 +355,7 @@ fun PrivacyPolicyDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(text = "I AGREE", color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "I AGREE", color = AmberAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -366,31 +376,35 @@ fun ExternalSearchDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-            shape = RoundedCornerShape(18.dp),
+            colors = CardDefaults.cardColors(containerColor = CardColor),
+            shape = RoundedCornerShape(24.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(18.dp))
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(listOf(AmberAccent, VioletAccent)),
+                    shape = RoundedCornerShape(24.dp)
+                )
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(24.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "ADVANCED EXTERNAL ENGINE PORTAL",
+                    text = "EXTERNAL SEARCH ENGINES",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MetallicGold,
-                    letterSpacing = 1.2.sp
+                    fontWeight = FontWeight.ExtraBold,
+                    color = AmberAccent,
+                    letterSpacing = 1.5.sp
                 )
                 Spacer(modifier = Modifier.height(14.dp))
                 Text(
                     text = if (cleanQuery.isEmpty()) "Search External Web Providers" else "Search Web for \"$cleanQuery\"",
-                    fontSize = 14.sp,
-                    color = Color.White,
+                    fontSize = 15.sp,
+                    color = TextColor,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.Center
                 )
@@ -401,7 +415,7 @@ fun ExternalSearchDialog(
                     Triple("Bing", "https://www.bing.com/search?q=", Color(0xFF00A4EF)),
                     Triple("DuckDuckGo", "https://duckduckgo.com/?q=", Color(0xFFDE5833)),
                     Triple("Brave", "https://search.brave.com/search?q=", Color(0xFFFB542B)),
-                    Triple("Perplexity", "https://www.perplexity.ai/search?q=", MetallicGold),
+                    Triple("Perplexity", "https://www.perplexity.ai/search?q=", AmberAccent),
                     Triple("Kagi", "https://kagi.com/search?q=", Color(0xFFFF6600)),
                     Triple("You.com", "https://you.com/search?q=", Color(0xFF00D1FF)),
                     Triple("Yahoo", "https://search.yahoo.com/search?p=", Color(0xFF6001D2)),
@@ -424,16 +438,16 @@ fun ExternalSearchDialog(
                                         openUrlWithChromeCustomTabs(context, "$baseUrl$encodedQuery")
                                         onDismiss()
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E1E1E)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
                                     shape = RoundedCornerShape(10.dp),
                                     modifier = Modifier
                                         .weight(1f)
-                                        .border(0.5.dp, brandColor.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                        .border(0.5.dp, brandColor.copy(alpha = 0.5f), RoundedCornerShape(10.dp))
                                 ) {
                                     Text(
                                         text = name,
-                                        color = Color.White,
-                                        fontSize = 11.sp,
+                                        color = TextColor,
+                                        fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
@@ -445,7 +459,7 @@ fun ExternalSearchDialog(
                 Spacer(modifier = Modifier.height(20.dp))
 
                 TextButton(onClick = onDismiss) {
-                    Text(text = "CANCEL", color = Color.Gray, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "CANCEL", color = TextDimColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -486,7 +500,7 @@ fun Premium3DLogo(
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFFFFDF00).copy(alpha = 0.25f),
+                            AmberAccent.copy(alpha = 0.25f),
                             Color.Transparent
                         )
                     ),
@@ -503,7 +517,7 @@ fun Premium3DLogo(
                         colors = listOf(
                             Color(0xFF8A7322), // Deep brass/bronze
                             Color(0xFFFFF6D1), // Bright Highlight
-                            Color(0xFFD4AF37), // Metallic Gold
+                            AmberAccent,       // Amber/Gold
                             Color(0xFF5C4A13)  // Dark shadow bevel
                         ),
                         start = Offset(0f, 0f),
@@ -518,22 +532,22 @@ fun Premium3DLogo(
                 )
         )
 
-        // Inner Matte Dark Charcoal Core (Layer 3) - Sinks into the ring
+        // Inner Matte Dark Core (Layer 3) - Sinks into the ring
         Box(
             modifier = Modifier
                 .size((size * 0.76).dp)
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFF0F0F0F), // Dark base
-                            Color(0xFF1F1F1F)  // Soft highlight
+                            BgColor,
+                            CardColor
                         )
                     ),
                     shape = CircleShape
                 )
                 .border(
                     width = 1.dp,
-                    color = Color(0xFFD4AF37).copy(alpha = 0.3f),
+                    color = AmberAccent.copy(alpha = 0.3f),
                     shape = CircleShape
                 )
         )
@@ -555,7 +569,7 @@ fun Premium3DLogo(
                     width = 1.dp,
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFFD4AF37),
+                            AmberAccent,
                             Color(0xFFFFF6D1),
                             Color(0xFF5C4A13)
                         )
@@ -575,7 +589,7 @@ fun Premium3DLogo(
                     brush = Brush.linearGradient(
                         colors = listOf(
                             Color(0xFFFFF6D1), // Bright highlight at top
-                            Color(0xFFD4AF37), // Solid Metallic Gold
+                            AmberAccent,       // Solid Amber Gold
                             Color(0xFF9E7E1D)  // Deep shadow at bottom
                         )
                     ),
@@ -607,7 +621,7 @@ fun PremiumSplashScreen(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0A)),
+            .background(BgColor),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -621,7 +635,7 @@ fun PremiumSplashScreen(modifier: Modifier = Modifier) {
             text = "Ai Latest Finder",
             fontSize = 28.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = MetallicGold,
+            color = AmberAccent,
             letterSpacing = 2.sp
         )
 
@@ -634,7 +648,7 @@ fun PremiumSplashScreen(modifier: Modifier = Modifier) {
 
         // Circular progress loader with smooth metallic gold styling
         CircularProgressIndicator(
-            color = MetallicGold,
+            color = AmberAccent,
             strokeWidth = 3.dp,
             modifier = Modifier.size(28.dp)
         )
@@ -642,9 +656,9 @@ fun PremiumSplashScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(18.dp))
 
         Text(
-            text = "Loading AI Directory...",
-            color = Color.Gray,
-            fontSize = 12.sp,
+            text = "Initializing Dashboard...",
+            color = TextDimColor,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp
         )
@@ -670,9 +684,9 @@ fun Modifier.shimmerEffect(): Modifier = composed {
     background(
         brush = Brush.linearGradient(
             colors = listOf(
-                Color(0xFF0F0F0F),
-                Color(0xFF262217), // Rich golden-tinted metallic shimmer highlight
-                Color(0xFF0F0F0F)
+                CardColor,
+                Card2Color,
+                CardColor
             ),
             start = Offset(startOffsetX, 0f),
             end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat())
@@ -688,14 +702,14 @@ fun Modifier.shimmerEffect(): Modifier = composed {
 @Composable
 fun AiToolCardSkeleton() {
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+        colors = CardDefaults.cardColors(containerColor = CardColor),
         shape = RoundedCornerShape(18.dp),
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .border(
                 width = 0.5.dp,
-                color = MetallicGold.copy(alpha = 0.08f),
+                color = AmberAccent.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(18.dp)
             )
     ) {
@@ -746,7 +760,7 @@ fun AiToolCardSkeleton() {
 }
 
 /**
- * HighlightedText renders text and highlights query matches dynamically in Metallic Gold.
+ * HighlightedText renders text and highlights query matches dynamically in Amber Gold.
  */
 @Composable
 fun HighlightedText(
@@ -774,7 +788,7 @@ fun HighlightedText(
                 break
             }
             append(text.substring(start, index))
-            pushStyle(SpanStyle(color = MetallicGold, fontWeight = FontWeight.Bold))
+            pushStyle(SpanStyle(color = AmberAccent, fontWeight = FontWeight.Bold))
             append(text.substring(index, index + query.length))
             pop()
             start = index + query.length
@@ -810,9 +824,9 @@ fun ShimmerBrandingText(modifier: Modifier = Modifier) {
     val shimmerBrush = Brush.linearGradient(
         colors = listOf(
             Color(0xFF8A7322), // Deep gold
-            MetallicGold,      // Radiant Gold
+            AmberAccent,       // Radiant Amber Gold
             Color(0xFFFFF6D1), // Soft white-gold
-            MetallicGold,
+            AmberAccent,
             Color(0xFF8A7322)
         ),
         start = androidx.compose.ui.geometry.Offset(xOffset, 0f),
@@ -824,8 +838,8 @@ fun ShimmerBrandingText(modifier: Modifier = Modifier) {
         style = TextStyle(
             brush = shimmerBrush,
             fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.8.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 2.sp,
             fontFamily = FontFamily.SansSerif
         ),
         modifier = modifier
@@ -849,8 +863,8 @@ fun PulsingSearchBox(
     val focusManager = LocalFocusManager.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val borderAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.9f,
+        initialValue = 0.2f,
+        targetValue = 0.8f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1500, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
@@ -860,7 +874,7 @@ fun PulsingSearchBox(
 
     val borderWidth by infiniteTransition.animateFloat(
         initialValue = 1.0f,
-        targetValue = 1.8f,
+        targetValue = 1.6f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1500, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
@@ -871,18 +885,17 @@ fun PulsingSearchBox(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
             .border(
                 width = borderWidth.dp,
                 brush = Brush.linearGradient(
                     colors = listOf(
-                        MetallicGold.copy(alpha = borderAlpha),
-                        Color(0xFFFFDF00).copy(alpha = borderAlpha)
+                        AmberAccent.copy(alpha = borderAlpha),
+                        VioletAccent.copy(alpha = borderAlpha)
                     )
                 ),
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(16.dp)
             )
-            .background(Color(0xFF141414), shape = RoundedCornerShape(14.dp))
+            .background(CardColor, shape = RoundedCornerShape(16.dp))
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Row(
@@ -892,15 +905,15 @@ fun PulsingSearchBox(
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search Icon",
-                tint = MetallicGold.copy(alpha = 0.8f),
+                tint = AmberAccent,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
             Box(modifier = Modifier.weight(1f)) {
                 if (query.isEmpty()) {
                     Text(
-                        text = "Search Premium AI Tools...",
-                        color = Color.Gray,
+                        text = "Search 1000+ AI tools...",
+                        color = TextDimColor,
                         fontSize = 14.sp
                     )
                 }
@@ -908,10 +921,10 @@ fun PulsingSearchBox(
                     value = query,
                     onValueChange = onQueryChanged,
                     textStyle = TextStyle(
-                        color = Color.White,
+                        color = TextColor,
                         fontSize = 14.sp
                     ),
-                    cursorBrush = SolidColor(MetallicGold),
+                    cursorBrush = SolidColor(AmberAccent),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                     modifier = Modifier.fillMaxWidth()
@@ -923,14 +936,14 @@ fun PulsingSearchBox(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(20.dp)
-                        .background(Color.White.copy(alpha = 0.08f), CircleShape)
-                        .border(0.5.dp, MetallicGold.copy(alpha = 0.5f), CircleShape),
+                        .size(22.dp)
+                        .background(Card2Color, CircleShape)
+                        .border(0.5.dp, AmberAccent.copy(alpha = 0.5f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "G",
-                        color = MetallicGold,
+                        color = AmberAccent,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 11.sp
                     )
@@ -941,7 +954,7 @@ fun PulsingSearchBox(
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Clear Search",
-                    tint = Color.Gray,
+                    tint = TextDimColor,
                     modifier = Modifier
                         .size(18.dp)
                         .clickable { onQueryChanged("") }
@@ -971,38 +984,47 @@ fun CategoryChips(
     LazyRow(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp),
+            .padding(vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 0.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(categories, key = { it }) { category ->
             val isSelected = category == selectedCategory
             val backgroundBrush = if (isSelected) {
-                Brush.linearGradient(listOf(MetallicGold, Color(0xFF9E7E1D)))
+                Brush.linearGradient(listOf(AmberAccent, MetallicGold))
             } else {
-                Brush.linearGradient(listOf(Color(0xFF1F1F1F), Color(0xFF141414)))
+                Brush.linearGradient(listOf(CardColor, CardColor))
             }
-            val textColor = if (isSelected) Color(0xFF0A0A0A) else PaleGold
+            val textColor = if (isSelected) Color(0xFF1A1400) else TextDimColor
 
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(50.dp))
+                    .clip(RoundedCornerShape(22.dp))
                     .clickable { onCategorySelected(category) }
                     .border(
-                        width = if (isSelected) 0.dp else 1.dp,
-                        color = MetallicGold.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(50.dp)
+                        width = 1.dp,
+                        color = if (isSelected) Color.Transparent else Card2Color,
+                        shape = RoundedCornerShape(22.dp)
                     )
                     .background(brush = backgroundBrush)
-                    .padding(horizontal = 18.dp, vertical = 8.dp)
+                    .padding(horizontal = 16.dp, vertical = 9.dp)
             ) {
-                Text(
-                    text = category,
-                    color = textColor,
-                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                    letterSpacing = 0.5.sp
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (isSelected) {
+                        Text(
+                            text = "✦ ",
+                            color = textColor,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Text(
+                        text = category,
+                        color = textColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.5.sp
+                    )
+                }
             }
         }
     }
@@ -1024,12 +1046,11 @@ fun AiToolCard(
     val context = LocalContext.current
 
     val cardPaddingVertical = if (isCompactMode) 4.dp else 8.dp
-    val innerPadding = if (isCompactMode) 10.dp else 14.dp
-    val logoSize = if (isCompactMode) 48 else 64
-    val titleFontSize = if (isCompactMode) 14.sp else 16.sp
+    val innerPadding = if (isCompactMode) 12.dp else 16.dp
+    val logoSize = if (isCompactMode) 44 else 60
+    val titleFontSize = if (isCompactMode) 13.5.sp else 15.sp
     val descMaxLines = if (isCompactMode) 1 else 2
 
-    // Optimize image loading recompositions by remembering the ImageRequest instance
     val imageRequest = remember(tool.imageUrl) {
         ImageRequest.Builder(context)
             .data(tool.imageUrl)
@@ -1038,19 +1059,18 @@ fun AiToolCard(
             .build()
     }
 
-    // Subtle premium card design
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1A1A1A)
+            containerColor = CardColor
         ),
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = cardPaddingVertical)
+            .padding(vertical = cardPaddingVertical)
             .border(
-                width = 0.5.dp,
-                color = MetallicGold.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(18.dp)
+                width = 1.dp,
+                color = Card2Color,
+                shape = RoundedCornerShape(20.dp)
             )
             .clickable { onCardClicked(tool) }
     ) {
@@ -1060,12 +1080,11 @@ fun AiToolCard(
                 .padding(innerPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Elegant circular Image Container with crossfade, fallback, and gold border
             Box(
                 modifier = Modifier
                     .size(logoSize.dp)
-                    .clip(CircleShape)
-                    .border(if (isCompactMode) 1.dp else 1.5.dp, MetallicGold, CircleShape),
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, AmberAccent.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (!isImageError && tool.imageUrl.isNotEmpty()) {
@@ -1077,14 +1096,12 @@ fun AiToolCard(
                         onError = { isImageError = true }
                     )
                 } else {
-                    // Remove alphabet placeholders and render a premium 3D gold-metallic shield/logo instead!
                     Premium3DLogo(size = logoSize)
                 }
             }
 
             Spacer(modifier = Modifier.width(innerPadding))
 
-            // Text Info & Direct Action
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -1093,46 +1110,42 @@ fun AiToolCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Title with Search Highlight
                     HighlightedText(
                         text = tool.name,
                         query = searchQuery,
                         style = TextStyle(
-                            color = Color.White,
+                            color = TextColor,
                             fontWeight = FontWeight.Bold,
-                            fontSize = titleFontSize,
-                            letterSpacing = 0.2.sp
+                            fontSize = titleFontSize
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f).padding(end = 6.dp)
                     )
-                    // Category Badge in Metallic Gold
                     Box(
                         modifier = Modifier
-                            .background(MetallicGold.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
-                            .border(0.5.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                            .background(AmberAccent.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .border(0.5.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = tool.category,
-                            color = MetallicGold,
+                            color = AmberAccent,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(if (isCompactMode) 3.dp else 6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-                // Description with Search Highlight
                 HighlightedText(
                     text = tool.description,
                     query = searchQuery,
                     style = TextStyle(
-                        color = Color.LightGray.copy(alpha = 0.85f),
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp
+                        color = TextDimColor,
+                        fontSize = 11.5.sp,
+                        lineHeight = 15.sp
                     ),
                     maxLines = descMaxLines,
                     overflow = TextOverflow.Ellipsis
@@ -1154,14 +1167,11 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val isDebug = remember(context) { (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
 
-    // Resolve final safe ad unit id to display.
-    // In Production Release builds, strictly force your real verified Ad Unit ID and never load test IDs.
     val finalAdUnitId = remember(adUnitId, isDebug) {
         if (isDebug) {
             val testPrefix = "ca-app-pub-" + "3940256099942544"
             adUnitId.ifEmpty { "$testPrefix/6300978111" }
         } else {
-            // Production Release Build: Strictly use your real production Ad Unit ID!
             val forbiddenLiteral = "3940256" + "099942544"
             if (adUnitId.isEmpty() || adUnitId.contains(forbiddenLiteral)) {
                 "ca-app-pub-8178045957849630/1752932881"
@@ -1172,17 +1182,16 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     }
 
     if (hasError) {
-        // Fallback gracefully without crashing the app, showing a beautiful subtle premium brand layout
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .background(Color(0xFF141414))
+                .background(CardColor)
                 .padding(vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Premium AI Experience Portal",
-                color = MetallicGold.copy(alpha = 0.4f),
+                color = AmberAccent.copy(alpha = 0.4f),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
@@ -1192,7 +1201,7 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .background(Color.Black)
+                .background(BgColor)
                 .padding(vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -1208,7 +1217,7 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
                     } catch (e: Exception) {
                         android.util.Log.e("AdBanner", "Failed to construct AdView: ${e.localizedMessage}", e)
                         hasError = true
-                        android.view.View(ctx) // Return dummy safe view
+                        android.view.View(ctx)
                     }
                 },
                 update = { _ -> }
@@ -1229,17 +1238,16 @@ fun NetworkErrorScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF0A0A0A))
+            .background(BgColor)
             .padding(24.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // High premium styled offline indicator
         Box(
             modifier = Modifier
                 .size(72.dp)
-                .background(Color(0xFF1E1705), shape = RoundedCornerShape(36.dp))
-                .border(1.5.dp, MetallicGold, shape = RoundedCornerShape(36.dp)),
+                .background(AmberAccent.copy(alpha = 0.1f), shape = RoundedCornerShape(36.dp))
+                .border(1.5.dp, AmberAccent, shape = RoundedCornerShape(36.dp)),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -1252,7 +1260,7 @@ fun NetworkErrorScreen(
 
         Text(
             text = "Internet Connection Required",
-            color = Color.White,
+            color = TextColor,
             fontSize = 20.sp,
             fontWeight = FontWeight.ExtraBold,
             letterSpacing = 0.5.sp,
@@ -1263,7 +1271,7 @@ fun NetworkErrorScreen(
 
         Text(
             text = "Ai Latest Finder needs an active network connection to sync real-time tools with Firestore.",
-            color = Color.Gray,
+            color = TextDimColor,
             fontSize = 13.sp,
             lineHeight = 18.sp,
             textAlign = TextAlign.Center,
@@ -1274,7 +1282,7 @@ fun NetworkErrorScreen(
 
         if (isRefreshing) {
             CircularProgressIndicator(
-                color = MetallicGold,
+                color = AmberAccent,
                 strokeWidth = 3.dp,
                 modifier = Modifier.size(24.dp)
             )
@@ -1282,10 +1290,10 @@ fun NetworkErrorScreen(
             Button(
                 onClick = onRetry,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MetallicGold,
+                    containerColor = AmberAccent,
                     contentColor = Color.Black
                 ),
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 28.dp, vertical = 12.dp)
             ) {
                 Text(
@@ -1314,7 +1322,6 @@ fun AiDetailOverlay(
     val context = LocalContext.current
     var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
 
-    // Optimize image loading recompositions by remembering the ImageRequest instance
     val imageRequest = remember(tool.imageUrl) {
         ImageRequest.Builder(context)
             .data(tool.imageUrl)
@@ -1329,18 +1336,18 @@ fun AiDetailOverlay(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xEE050505)) // Beautiful glassmorphic dim background overlay
+                .background(Color(0xEE050505))
                 .clickable { onDismiss() },
             contentAlignment = Alignment.Center
         ) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
+                colors = CardDefaults.cardColors(containerColor = CardColor),
                 shape = RoundedCornerShape(24.dp),
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .fillMaxHeight(0.85f)
-                    .border(1.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(24.dp))
-                    .clickable(enabled = false) {} // Prevent dismiss on self clicks
+                    .border(1.dp, Card2Color, RoundedCornerShape(24.dp))
+                    .clickable(enabled = false) {}
             ) {
                 Column(
                     modifier = Modifier
@@ -1348,7 +1355,6 @@ fun AiDetailOverlay(
                         .padding(20.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
-                    // Header Area
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -1357,8 +1363,8 @@ fun AiDetailOverlay(
                         Text(
                             text = "AI DISCOVERY DETAILED PORTAL",
                             fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MetallicGold,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AmberAccent,
                             letterSpacing = 1.5.sp
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1366,14 +1372,14 @@ fun AiDetailOverlay(
                                 Icon(
                                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                     contentDescription = "Favorite Toggle",
-                                    tint = if (isFavorite) Color.Red else MetallicGold
+                                    tint = if (isFavorite) Color.Red else AmberAccent
                                 )
                             }
                             IconButton(onClick = onDismiss) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Close overlay",
-                                    tint = Color.Gray
+                                    tint = TextDimColor
                                 )
                             }
                         }
@@ -1381,7 +1387,6 @@ fun AiDetailOverlay(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    // Tool identity (Logo, Name, Developer, Company)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -1389,8 +1394,8 @@ fun AiDetailOverlay(
                         Box(
                             modifier = Modifier
                                 .size(76.dp)
-                                .clip(CircleShape)
-                                .border(2.dp, MetallicGold, CircleShape),
+                                .clip(RoundedCornerShape(16.dp))
+                                .border(1.5.dp, AmberAccent, RoundedCornerShape(16.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             if (!isImageError && tool.imageUrl.isNotEmpty()) {
@@ -1402,7 +1407,6 @@ fun AiDetailOverlay(
                                     onError = { isImageError = true }
                                 )
                             } else {
-                                // Remove alphabet placeholders and render a premium 3D gold-metallic shield/logo instead!
                                 Premium3DLogo(size = 76)
                             }
                         }
@@ -1410,20 +1414,20 @@ fun AiDetailOverlay(
                         Column {
                             Text(
                                 text = tool.name,
-                                color = Color.White,
-                                fontSize = 22.sp,
+                                color = TextColor,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 letterSpacing = 0.5.sp
                             )
                             Text(
                                 text = "Developer: ${tool.developer}",
-                                color = Color.LightGray.copy(alpha = 0.8f),
+                                color = TextDimColor,
                                 fontSize = 12.sp,
                                 modifier = Modifier.padding(top = 2.dp)
                             )
                             Text(
                                 text = "Company: ${tool.company}",
-                                color = Color.Gray,
+                                color = TextDimColor.copy(alpha = 0.7f),
                                 fontSize = 11.sp,
                                 modifier = Modifier.padding(top = 1.dp)
                             )
@@ -1432,34 +1436,30 @@ fun AiDetailOverlay(
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    // Row showing Status, Pricing, Launch Year
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        // Pricing Badge
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "PRICING", color = Color.Gray, fontSize = 9.sp)
+                            Text(text = "PRICING", color = TextDimColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             Box(
                                 modifier = Modifier
                                     .padding(top = 4.dp)
-                                    .background(MetallicGold.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
-                                    .border(0.5.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                                    .background(AmberAccent.copy(alpha = 0.12f), RoundedCornerShape(6.dp))
+                                    .border(0.5.dp, AmberAccent.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
                                     .padding(horizontal = 12.dp, vertical = 4.dp)
                             ) {
-                                Text(text = tool.pricing, color = MetallicGold, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text(text = tool.pricing, color = AmberAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
                         }
 
-                        // Launch Year
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "LAUNCH YEAR", color = Color.Gray, fontSize = 9.sp)
-                            Text(text = tool.launchYear, color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                            Text(text = "LAUNCH YEAR", color = TextDimColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                            Text(text = tool.launchYear, color = TextColor, fontSize = 13.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
                         }
 
-                        // Status Badge
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "STATUS", color = Color.Gray, fontSize = 9.sp)
+                            Text(text = "STATUS", color = TextDimColor, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                             Box(
                                 modifier = Modifier
                                     .padding(top = 4.dp)
@@ -1473,8 +1473,7 @@ fun AiDetailOverlay(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Platforms
-                    Text(text = "COMPATIBLE PLATFORMS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "COMPATIBLE PLATFORMS", color = TextDimColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1484,21 +1483,20 @@ fun AiDetailOverlay(
                         tool.platforms.forEach { platform ->
                             Box(
                                 modifier = Modifier
-                                    .background(Color(0xFF222222), RoundedCornerShape(6.dp))
+                                    .background(Card2Color, RoundedCornerShape(6.dp))
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
-                                Text(text = platform, color = Color.White, fontSize = 11.sp)
+                                Text(text = platform, color = TextColor, fontSize = 11.sp)
                             }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    // Description
-                    Text(text = "DESCRIPTION", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "DESCRIPTION", color = TextDimColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Text(
                         text = tool.description,
-                        color = Color.LightGray,
+                        color = TextColor.copy(alpha = 0.9f),
                         fontSize = 13.sp,
                         lineHeight = 18.sp,
                         modifier = Modifier.padding(top = 6.dp)
@@ -1506,10 +1504,9 @@ fun AiDetailOverlay(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Primary Official Website custom tab button
                     Button(
                         onClick = { onOpenUrl(tool.toolUrl) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MetallicGold),
+                        colors = ButtonDefaults.buttonColors(containerColor = AmberAccent),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -1524,9 +1521,8 @@ fun AiDetailOverlay(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Alternatives / Related AI
                     if (tool.alternatives.isNotEmpty()) {
-                        Text(text = "SIMILAR PLATFORMS / ALTERNATIVES", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "SIMILAR PLATFORMS / ALTERNATIVES", color = TextDimColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(6.dp))
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -1535,20 +1531,19 @@ fun AiDetailOverlay(
                             tool.alternatives.forEach { altName ->
                                 Box(
                                     modifier = Modifier
-                                        .background(MetallicGold.copy(alpha = 0.08f), RoundedCornerShape(8.dp))
-                                        .border(0.5.dp, MetallicGold.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                        .background(AmberAccent.copy(alpha = 0.08f), RoundedCornerShape(8.dp))
+                                        .border(0.5.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Text(text = altName, color = PaleGold, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    Text(text = altName, color = AmberAccent, fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                 }
                             }
                         }
                     }
 
-                    // Similar AI / Tags Section
                     if (tool.tags.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(24.dp))
-                        Text(text = "SIMILAR AI / TAGS", color = Color.Gray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text(text = "SIMILAR AI / TAGS", color = TextDimColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.height(6.dp))
                         LazyRow(
                             modifier = Modifier.fillMaxWidth(),
@@ -1557,11 +1552,11 @@ fun AiDetailOverlay(
                             items(tool.tags, key = { it }) { tag ->
                                 Box(
                                     modifier = Modifier
-                                        .background(Color(0xFF222222), RoundedCornerShape(8.dp))
-                                        .border(0.5.dp, MetallicGold.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                                        .background(Card2Color, RoundedCornerShape(8.dp))
+                                        .border(0.5.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
-                                    Text(text = tag, color = Color.White, fontSize = 11.sp)
+                                    Text(text = tag, color = TextColor, fontSize = 11.sp)
                                 }
                             }
                         }
@@ -1595,14 +1590,13 @@ fun LiteBrowserDialog(
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = Color(0xFF0A0A0A)
+            color = BgColor
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // Top Custom Browser Control Bar
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFF141414))
+                        .background(CardColor)
                         .padding(horizontal = 8.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -1613,11 +1607,10 @@ fun LiteBrowserDialog(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close Browser",
-                            tint = Color.White
+                            tint = TextColor
                         )
                     }
 
-                    // Back Navigation
                     IconButton(
                         onClick = { webViewRef?.goBack() },
                         enabled = canGoBack,
@@ -1625,12 +1618,11 @@ fun LiteBrowserDialog(
                     ) {
                         Text(
                             text = "◀",
-                            color = if (canGoBack) MetallicGold else Color.Gray,
+                            color = if (canGoBack) AmberAccent else TextDimColor,
                             fontSize = 14.sp
                         )
                     }
 
-                    // Forward Navigation
                     IconButton(
                         onClick = { webViewRef?.goForward() },
                         enabled = canGoForward,
@@ -1638,38 +1630,36 @@ fun LiteBrowserDialog(
                     ) {
                         Text(
                             text = "▶",
-                            color = if (canGoForward) MetallicGold else Color.Gray,
+                            color = if (canGoForward) AmberAccent else TextDimColor,
                             fontSize = 14.sp
                         )
                     }
 
-                    // Refresh Button
                     IconButton(
                         onClick = { webViewRef?.reload() },
                         modifier = Modifier.size(36.dp)
                     ) {
                         Text(
                             text = "🔄",
-                            color = MetallicGold,
+                            color = AmberAccent,
                             fontSize = 14.sp
                         )
                     }
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    // URL display box
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .height(36.dp)
-                            .background(Color(0xFF1F1F1F), RoundedCornerShape(8.dp))
-                            .border(0.5.dp, MetallicGold.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                            .background(Card2Color, RoundedCornerShape(8.dp))
+                            .border(0.5.dp, AmberAccent.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                             .padding(horizontal = 10.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
                             text = currentUrl.replace("https://", "").replace("http://", ""),
-                            color = Color.LightGray,
+                            color = TextColor.copy(alpha = 0.8f),
                             fontSize = 11.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -1678,7 +1668,6 @@ fun LiteBrowserDialog(
 
                     Spacer(modifier = Modifier.width(6.dp))
 
-                    // Desktop Mode Toggle
                     IconButton(
                         onClick = {
                             isDesktopMode = !isDesktopMode
@@ -1704,7 +1693,6 @@ fun LiteBrowserDialog(
                         )
                     }
 
-                    // External Browser Button
                     IconButton(
                         onClick = { openUrlWithChromeCustomTabs(context, currentUrl) },
                         modifier = Modifier.size(36.dp)
@@ -1712,27 +1700,25 @@ fun LiteBrowserDialog(
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Open in External Tab",
-                            tint = MetallicGold,
+                            tint = AmberAccent,
                             modifier = Modifier.size(18.dp)
                         )
                     }
                 }
 
-                // Progress Bar in Metallic Gold
                 if (progress < 100) {
                     LinearProgressIndicator(
                         progress = { progress / 100f },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(2.dp),
-                        color = MetallicGold,
+                        color = AmberAccent,
                         trackColor = Color.Transparent
                     )
                 } else {
                     Spacer(modifier = Modifier.height(2.dp))
                 }
 
-                // WebView Container
                 Box(
                     modifier = Modifier
                         .weight(1f)

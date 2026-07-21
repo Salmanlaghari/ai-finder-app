@@ -18,24 +18,27 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.presentation.components.*
-import com.princelaghari.ailatestfinder.presentation.theme.AiLatestFinderTheme
-import com.princelaghari.ailatestfinder.presentation.theme.MetallicGold
+import com.princelaghari.ailatestfinder.presentation.theme.*
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -54,7 +57,7 @@ class MainActivity : ComponentActivity() {
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF0A0A0A)
+                    color = BgColor
                 ) {
                     if (isAppLoading) {
                         PremiumSplashScreen()
@@ -79,48 +82,27 @@ fun MainScreen(viewModel: HomeViewModel) {
     val searchQuery by viewModel.searchQuery.collectAsState()
     val selectedCategory by viewModel.selectedCategory.collectAsState()
     val aiTools by viewModel.filteredList.collectAsState()
+    val rawAiTools by viewModel.aiTools.collectAsState()
     val suggestions by viewModel.suggestions.collectAsState()
     val favoriteIds by viewModel.favoriteIds.collectAsState()
     val recentlyViewedIds by viewModel.recentlyViewedIds.collectAsState()
     val selectedSortOption by viewModel.selectedSortOption.collectAsState()
 
-    // Left Navigation Drawer State
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
-
-    // Navigation Active Mode State
+    // Bottom Navigation View Mode (Home, Categories, Saved, Profile)
     var activeViewMode by remember { mutableStateOf("Home") }
 
-    // External Search Panel State
-    var showExternalSearchPanel by remember { mutableStateOf(false) }
-
-    // Overlay active selection state
+    // Dialog state controllers
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
     var activeBrowserUrl by remember { mutableStateOf<String?>(null) }
-
-    val isCompactMode by viewModel.isCompactMode.collectAsState()
-    val defaultSearchEngine by viewModel.defaultSearchEngine.collectAsState()
-
+    var showExternalSearchPanel by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var showPrivacyPolicy by remember { mutableStateOf(false) }
 
-    // Dynamically filter active list on Drawer clicks
-    val activeList = remember(aiTools, activeViewMode, favoriteIds, recentlyViewedIds) {
-        when (activeViewMode) {
-            "Favorites" -> aiTools.filter { favoriteIds.contains(it.id) }
-            "History" -> {
-                val historyList = mutableListOf<AiTool>()
-                recentlyViewedIds.forEach { id ->
-                    aiTools.find { it.id == id }?.let { historyList.add(it) }
-                }
-                historyList
-            }
-            else -> aiTools
-        }
-    }
+    val isCompactMode by viewModel.isCompactMode.collectAsState()
+    val defaultSearchEngine by viewModel.defaultSearchEngine.collectAsState()
 
-    // Lazy list pagination trigger
+    // Scroll pagination triggers
     val listState = rememberLazyListState()
     val visibleItemLimit by viewModel.visibleItemLimit.collectAsState()
     val shouldLoadMore = remember(visibleItemLimit) {
@@ -138,354 +120,634 @@ fun MainScreen(viewModel: HomeViewModel) {
         }
     }
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                drawerContainerColor = Color(0xFF141414),
-                drawerContentColor = Color.White,
-                modifier = Modifier.width(300.dp)
-            ) {
-                Spacer(modifier = Modifier.height(24.dp))
-                // Brand Header in Drawer
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Premium3DLogo(size = 48)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = "Ai Latest Finder",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MetallicGold,
-                            letterSpacing = 1.2.sp
-                        )
-                        Text(
-                            text = "Premium Portal v1.0.2",
-                            fontSize = 11.sp,
-                            color = Color.Gray,
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
-                }
-
-                HorizontalDivider(color = MetallicGold.copy(alpha = 0.2f), modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp))
-
-                // Drawer Navigation Items
-                val menuItems = listOf(
-                    "Home" to "Explore latest AI tools",
-                    "AI History" to "Your recently viewed models",
-                    "Favorites" to "Your curated AI shortlist",
-                    "Categories" to "Browse by domains",
-                    "Lite Browser" to "Open secure web portal",
-                    "Settings" to "Configure interface preferences",
-                    "About" to "Platform details & info",
-                    "Privacy Policy" to "Your data protection rights"
-                )
-
-                menuItems.forEach { (title, subtitle) ->
-                    val isCurrentSelection = when (title) {
-                        "Home" -> activeViewMode == "Home"
-                        "AI History" -> activeViewMode == "History"
-                        "Favorites" -> activeViewMode == "Favorites"
-                        else -> false
-                    }
-                    NavigationDrawerItem(
-                        label = {
-                            Column {
-                                Text(
-                                    text = title,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isCurrentSelection) MetallicGold else Color.White
-                                )
-                                Text(
-                                    text = subtitle,
-                                    fontSize = 11.sp,
-                                    color = Color.Gray
-                                )
-                            }
-                        },
-                        selected = isCurrentSelection,
-                        onClick = {
-                            scope.launch { drawerState.close() }
-                            when (title) {
-                                "Home" -> activeViewMode = "Home"
-                                "AI History" -> activeViewMode = "History"
-                                "Favorites" -> activeViewMode = "Favorites"
-                                "Categories" -> {
-                                    activeViewMode = "Home"
-                                    viewModel.onCategorySelected("All")
-                                }
-                                "Lite Browser" -> {
-                                    activeBrowserUrl = "https://www.google.com"
-                                }
-                                "Settings" -> {
-                                    showSettings = true
-                                }
-                                "About" -> {
-                                    showAbout = true
-                                }
-                                "Privacy Policy" -> {
-                                    showPrivacyPolicy = true
-                                }
-                            }
-                        },
-                        colors = NavigationDrawerItemDefaults.colors(
-                            selectedContainerColor = MetallicGold.copy(alpha = 0.1f),
-                            unselectedContainerColor = Color.Transparent
-                        ),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // Footer branding in drawer
-                Text(
-                    text = "Created by Prince Laghari",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MetallicGold.copy(alpha = 0.6f),
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(bottom = 24.dp)
-                )
-            }
-        }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgColor)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFF0A0A0A))
-            ) {
-                // Top Header with (☰) hamburger button
-                Row(
+        // Main Scrollable Area
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp) // Leave exact space for floating navigation bar
+        ) {
+            // Dashboard Layout
+            if (activeViewMode == "Home" && searchQuery.isEmpty()) {
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 20.dp, bottom = 4.dp, start = 8.dp, end = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Open Navigation Drawer",
-                            tint = MetallicGold
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Premium3DLogo(size = 40)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Ai Latest Finder",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MetallicGold,
-                            letterSpacing = 1.5.sp
-                        )
-                        Text(
-                            text = "Discover the World's Best AI Technologies",
-                            fontSize = 11.sp,
-                            color = Color.LightGray.copy(alpha = 0.6f),
-                            letterSpacing = 0.5.sp,
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
-                }
-
-            // Search Bar with neon pulse border
-            Box(modifier = Modifier.fillMaxWidth()) {
-                PulsingSearchBox(
-                    query = searchQuery,
-                    onQueryChanged = { viewModel.onSearchQueryChanged(it) },
-                    onExternalSearchClicked = { showExternalSearchPanel = true }
-                )
-            }
-
-            // Real-time typed suggestions Dropdown UI overlay
-            if (suggestions.isNotEmpty()) {
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF141414)),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .border(1.dp, MetallicGold.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
-                ) {
-                    Column(modifier = Modifier.padding(8.dp)) {
-                        Text(
-                            text = "INSTANT SEARCH SUGGESTIONS",
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MetallicGold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                        suggestions.forEach { name ->
+                    // Header Greet Panel
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 26.dp, bottom = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
                             Text(
-                                text = name,
-                                color = Color.White,
-                                fontSize = 13.sp,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        viewModel.onSearchQueryChanged(name)
-                                        focusManager.clearFocus()
-                                    }
-                                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                                text = "Welcome back 👋",
+                                fontSize = 12.5.sp,
+                                color = TextDimColor,
+                                fontWeight = FontWeight.SemiBold
                             )
-                        }
-                    }
-                }
-            }
-
-            // Shimmering Branding Line directly below Search View
-            ShimmerBrandingText()
-
-            // Small premium administrative text right above Category Chips
-            Text(
-                text = "Prince Laghari • Admin",
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = MetallicGold.copy(alpha = 0.7f),
-                letterSpacing = 1.2.sp,
-                modifier = Modifier
-                    .padding(top = 2.dp, bottom = 4.dp)
-                    .align(Alignment.CenterHorizontally)
-            )
-
-            // Horizontal Category Chips (Hide if searching to display ONLY search results)
-            if (searchQuery.isEmpty()) {
-                CategoryChips(
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = { viewModel.onCategorySelected(it) }
-                )
-
-                // Dynamic Sorting Selection Chips (Popular, Trending, Newest, A-Z) (Hide if searching)
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 6.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    val sortOptions = listOf("Popular", "Trending", "Newest", "A-Z")
-                    items(sortOptions, key = { it }) { option ->
-                        val isSelected = option == selectedSortOption
-                        val background = if (isSelected) MetallicGold.copy(alpha = 0.15f) else Color.Transparent
-                        val border = if (isSelected) MetallicGold else Color.Gray.copy(alpha = 0.3f)
-                        val textCol = if (isSelected) MetallicGold else Color.Gray
-
-                        Box(
-                            modifier = Modifier
-                                .background(background, RoundedCornerShape(8.dp))
-                                .border(0.5.dp, border, RoundedCornerShape(8.dp))
-                                .clickable { viewModel.onSortOptionSelected(option) }
-                                .padding(horizontal = 12.dp, vertical = 5.dp)
-                        ) {
                             Text(
-                                text = "Sort: $option",
-                                color = textCol,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Main Tools List or Empty State
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                if (activeList.isEmpty() && searchQuery.isEmpty()) {
-                    // Show flagship-grade loading experience with progress indicator & shimmer list
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            CircularProgressIndicator(
-                                color = MetallicGold,
-                                strokeWidth = 2.dp,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = "Loading AI Directory...",
-                                color = MetallicGold.copy(alpha = 0.8f),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
+                                text = "Explore AI Tools",
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextColor,
                                 letterSpacing = 0.5.sp
                             )
                         }
+                        // Bell Button to open About Info Panel
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(CardColor)
+                                .border(1.dp, Card2Color, RoundedCornerShape(14.dp))
+                                .clickable { showAbout = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "🔔",
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
 
-                        // Shimmering skeleton cards to represent loading placeholders
-                        LazyColumn(modifier = Modifier.fillMaxSize()) {
-                            items(5) {
-                                AiToolCardSkeleton()
+                    // Stats Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Total Tools Card
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardColor),
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    text = "1020",
+                                    fontSize = 19.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = AmberAccent
+                                )
+                                Text(
+                                    text = "AI Tools Listed",
+                                    fontSize = 10.5.sp,
+                                    color = TextDimColor,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Categories Card
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardColor),
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    text = "24",
+                                    fontSize = 19.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = VioletAccent
+                                )
+                                Text(
+                                    text = "Categories",
+                                    fontSize = 10.5.sp,
+                                    color = TextDimColor,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                        }
+
+                        // Added Today Card
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardColor),
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    text = "12",
+                                    fontSize = 19.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextColor
+                                )
+                                Text(
+                                    text = "Added Today",
+                                    fontSize = 10.5.sp,
+                                    color = TextDimColor,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
                             }
                         }
                     }
-                } else if (activeList.isEmpty()) {
+
+                    // Search input Section
                     Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 20.dp)
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        PulsingSearchBox(
+                            query = searchQuery,
+                            onQueryChanged = { viewModel.onSearchQueryChanged(it) },
+                            onExternalSearchClicked = { showExternalSearchPanel = true }
+                        )
+                    }
+
+                    // Horizontal Category filters
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 18.dp)
+                    ) {
+                        CategoryChips(
+                            selectedCategory = selectedCategory,
+                            onCategorySelected = { viewModel.onCategorySelected(it) }
+                        )
+                    }
+
+                    // Shimmering branding row
+                    ShimmerBrandingText(modifier = Modifier.padding(vertical = 4.dp))
+
+                    // Featured This Week Carousel
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 20.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                text = "No tools matched your search",
-                                color = Color.Gray,
-                                fontSize = 14.sp
+                                text = "Featured This Week",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextColor
                             )
                             Text(
-                                text = "Try clear search filters or explore categories",
-                                color = Color.DarkGray,
+                                text = "See All",
                                 fontSize = 12.sp,
-                                modifier = Modifier.padding(top = 4.dp)
+                                fontWeight = FontWeight.Bold,
+                                color = AmberAccent,
+                                modifier = Modifier.clickable { activeViewMode = "Categories" }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(14.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val featuredList = listOf(
+                                Triple("Claude Opus", "Advanced reasoning & long context", Color(0xFF3B2D6B)),
+                                Triple("Runway Gen-4", "Cinematic AI video generation", Color(0xFF6B4A1F))
+                            )
+                            items(featuredList) { (name, desc, bgCol) ->
+                                Box(
+                                    modifier = Modifier
+                                        .width(220.dp)
+                                        .height(130.dp)
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .background(
+                                            Brush.linearGradient(
+                                                listOf(
+                                                    bgCol,
+                                                    bgCol.copy(alpha = 0.3f),
+                                                    CardColor
+                                                )
+                                            )
+                                        )
+                                        .border(1.dp, Card2Color, RoundedCornerShape(20.dp))
+                                        .clickable {
+                                            val tool = rawAiTools.find { it.name.contains(name.split(" ")[0]) }
+                                            if (tool != null) {
+                                                viewModel.addToRecentlyViewed(tool.id)
+                                                selectedToolForDetail = tool
+                                            } else {
+                                                activeBrowserUrl = if (name.contains("Claude")) "https://claude.ai" else "https://runwayml.com"
+                                            }
+                                        }
+                                        .padding(18.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
+                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = if (name.contains("Claude")) "Editor's Pick" else "New",
+                                            color = Color.White,
+                                            fontSize = 9.5.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                    Column(
+                                        modifier = Modifier.align(Alignment.BottomStart)
+                                    ) {
+                                        Text(
+                                            text = name,
+                                            color = Color.White,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                        Text(
+                                            text = desc,
+                                            color = Color.White.copy(alpha = 0.7f),
+                                            fontSize = 11.sp,
+                                            modifier = Modifier.padding(top = 4.dp),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Top Rated Tools 2x2 Grid
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 26.dp, bottom = 20.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Top Rated Tools",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextColor
+                            )
+                            Text(
+                                text = "See All",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AmberAccent,
+                                modifier = Modifier.clickable { activeViewMode = "Categories" }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        val ratingTiles = listOf(
+                            Triple("Gemini 1.5", "Multimodal AI", "G"),
+                            Triple("Perplexity", "AI Search", "P"),
+                            Triple("Phind", "Dev Search", "Ph"),
+                            Triple("DALL-E 3", "Image AI", "D3")
+                        )
+
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            ratingTiles.chunked(2).forEach { rowItems ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    rowItems.forEach { (name, sub, iconChar) ->
+                                        val (avatarColor, badgeCol) = when (iconChar) {
+                                            "G" -> Pair(Color(0xFF3B82F6).copy(alpha = 0.15f), Color(0xFF60A5FA))
+                                            "P" -> Pair(Color(0xFF8B5CF6).copy(alpha = 0.15f), Color(0xFFA78BFA))
+                                            "Ph" -> Pair(Color(0xFF2DD4BF).copy(alpha = 0.15f), Color(0xFF2DD4BF))
+                                            else -> Pair(AmberAccent.copy(alpha = 0.15f), AmberAccent)
+                                        }
+
+                                        Card(
+                                            colors = CardDefaults.cardColors(containerColor = CardColor),
+                                            shape = RoundedCornerShape(18.dp),
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .border(1.dp, Card2Color, RoundedCornerShape(18.dp))
+                                                .clickable {
+                                                    val matchedTool = rawAiTools.find { it.name.contains(name.split(" ")[0]) }
+                                                    if (matchedTool != null) {
+                                                        viewModel.addToRecentlyViewed(matchedTool.id)
+                                                        selectedToolForDetail = matchedTool
+                                                    } else {
+                                                        activeBrowserUrl = when (iconChar) {
+                                                            "G" -> "https://gemini.google.com"
+                                                            "P" -> "https://perplexity.ai"
+                                                            "Ph" -> "https://phind.com"
+                                                            else -> "https://openai.com/dall-e-3"
+                                                        }
+                                                    }
+                                                }
+                                        ) {
+                                            Column(modifier = Modifier.padding(16.dp)) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(42.dp)
+                                                        .background(avatarColor, RoundedCornerShape(12.dp)),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = iconChar,
+                                                        color = badgeCol,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        fontSize = 16.sp
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.height(10.dp))
+                                                Text(
+                                                    text = name,
+                                                    color = TextColor,
+                                                    fontSize = 13.5.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                Text(
+                                                    text = sub,
+                                                    color = TextDimColor,
+                                                    fontSize = 10.5.sp,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.padding(top = 3.dp)
+                                                )
+                                                Text(
+                                                    text = "★★★★★ " + if (iconChar == "G") "4.8" else if (iconChar == "P") "4.7" else if (iconChar == "Ph") "4.3" else "4.9",
+                                                    color = AmberAccent,
+                                                    fontSize = 10.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.padding(top = 8.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Buy Me Coffee Integration inside Home Feed
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Card2Color),
+                        shape = RoundedCornerShape(18.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp, vertical = 10.dp)
+                            .border(1.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(18.dp))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Support Prince Laghari ☕",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextColor
+                                )
+                                Text(
+                                    text = "Keep the premium AI directory active & updated",
+                                    fontSize = 10.5.sp,
+                                    color = TextDimColor,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                            Button(
+                                onClick = {
+                                    openUrlWithChromeCustomTabs(context, "https://buymeacoffee.com/princelaghari")
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = AmberAccent),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(
+                                    text = "Support",
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            } else {
+                // List View (triggers when Category selected, Search query active, Saved tab, or History tab)
+                val activeList = remember(aiTools, activeViewMode, favoriteIds, recentlyViewedIds) {
+                    when (activeViewMode) {
+                        "Saved" -> aiTools.filter { favoriteIds.contains(it.id) }
+                        "History" -> {
+                            val historyList = mutableListOf<AiTool>()
+                            recentlyViewedIds.forEach { id ->
+                                aiTools.find { it.id == id }?.let { historyList.add(it) }
+                            }
+                            historyList
+                        }
+                        else -> aiTools
+                    }
+                }
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
+                            .padding(top = 26.dp, bottom = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = when (activeViewMode) {
+                                "Saved" -> "Saved Shortlist"
+                                "History" -> "Recently Viewed"
+                                else -> "AI Tools Explorer"
+                            },
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextColor
+                        )
+                        if (activeViewMode == "Categories") {
+                            Text(
+                                text = "Sort: $selectedSortOption",
+                                fontSize = 11.5.sp,
+                                color = AmberAccent,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .border(0.5.dp, AmberAccent.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                    .clickable {
+                                        val nextSort = when (selectedSortOption) {
+                                            "Popular" -> "Trending"
+                                            "Trending" -> "Newest"
+                                            "Newest" -> "A-Z"
+                                            else -> "Popular"
+                                        }
+                                        viewModel.onSortOptionSelected(nextSort)
+                                    }
+                                    .padding(horizontal = 10.dp, vertical = 5.dp)
                             )
                         }
                     }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 80.dp)
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 22.dp)
                     ) {
-                        itemsIndexed(
-                            items = activeList,
-                            key = { _, tool -> tool.id }
-                        ) { index, tool ->
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                // Smooth entry animations for AI cards
-                                AnimatedVisibility(
-                                    visible = true,
-                                    enter = slideInVertically(
-                                        initialOffsetY = { 50 * (index + 1) },
-                                        animationSpec = tween(
-                                            durationMillis = 400 + (index * 50).coerceAtMost(300),
-                                            easing = EaseOutQuad
-                                        )
-                                    ) + fadeIn(animationSpec = tween(300)),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
+                        PulsingSearchBox(
+                            query = searchQuery,
+                            onQueryChanged = { viewModel.onSearchQueryChanged(it) },
+                            onExternalSearchClicked = { showExternalSearchPanel = true }
+                        )
+                    }
+
+                    // Suggestions Overlay Dropdown
+                    if (suggestions.isNotEmpty()) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardColor),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 22.dp, vertical = 4.dp)
+                                .border(1.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text(
+                                    text = "SUGGESTIONS",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AmberAccent,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                                suggestions.forEach { name ->
+                                    Text(
+                                        text = name,
+                                        color = TextColor,
+                                        fontSize = 13.sp,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                viewModel.onSearchQueryChanged(name)
+                                                focusManager.clearFocus()
+                                            }
+                                            .padding(horizontal = 8.dp, vertical = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (activeViewMode == "Categories") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 22.dp)
+                        ) {
+                            CategoryChips(
+                                selectedCategory = selectedCategory,
+                                onCategorySelected = { viewModel.onCategorySelected(it) }
+                            )
+                        }
+                    }
+                }
+
+                // Listing Scroll panel
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 22.dp)
+                ) {
+                    if (activeList.isEmpty() && searchQuery.isEmpty()) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = AmberAccent,
+                                    strokeWidth = 2.dp,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Connecting to Firestore...",
+                                    color = AmberAccent,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp
+                                )
+                            }
+                            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                                items(5) {
+                                    AiToolCardSkeleton()
+                                }
+                            }
+                        }
+                    } else if (activeList.isEmpty()) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "No tools matched your filters",
+                                    color = TextDimColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Try clearing search words or adding items",
+                                    color = TextDimColor.copy(alpha = 0.6f),
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            itemsIndexed(
+                                items = activeList,
+                                key = { _, tool -> tool.id }
+                            ) { index, tool ->
+                                Box(modifier = Modifier.fillMaxWidth()) {
                                     AiToolCard(
                                         tool = tool,
-                                        searchQuery = searchQuery, // Pass searchQuery to highlight matches
+                                        searchQuery = searchQuery,
                                         isCompactMode = isCompactMode,
-                                        onCardClicked = { selectedTool ->
-                                            viewModel.addToRecentlyViewed(selectedTool.id)
-                                            selectedToolForDetail = selectedTool
+                                        onCardClicked = { clicked ->
+                                            viewModel.addToRecentlyViewed(clicked.id)
+                                            selectedToolForDetail = clicked
                                         }
                                     )
                                 }
@@ -494,12 +756,90 @@ fun MainScreen(viewModel: HomeViewModel) {
                     }
                 }
             }
+        }
 
-            // AdMob Banner integration at bottom of Screen
+        // Floating Bottom Navigation (Home, Categories, Saved, Profile)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = Color(0xFA08070C)),
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 18.dp)
+                .fillMaxWidth()
+                .height(64.dp)
+                .border(1.dp, Card2Color, RoundedCornerShape(24.dp))
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val navItems = listOf(
+                    Triple("Home", "🏠", "Home"),
+                    Triple("Categories", "▦", "Categories"),
+                    Triple("Saved", "❤️", "Saved"),
+                    Triple("Profile", "👤", "Profile")
+                )
+
+                navItems.forEach { (label, icon, mode) ->
+                    val isSelected = activeViewMode == mode
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .clickable {
+                                activeViewMode = mode
+                                if (mode == "Profile") {
+                                    showSettings = true
+                                }
+                            }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        if (isSelected) {
+                            Box(
+                                modifier = Modifier
+                                    .background(AmberAccent.copy(alpha = 0.15f), RoundedCornerShape(14.dp))
+                                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(text = icon, fontSize = 14.sp)
+                                    Text(
+                                        text = label,
+                                        color = AmberAccent,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(text = icon, fontSize = 16.sp)
+                            Text(
+                                text = label,
+                                color = TextDimColor,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sticky AdBanner integration directly layered
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+        ) {
             AdBanner(adUnitId = viewModel.getBannerAdUnitId())
         }
 
-        // Beautiful Detail Overlay Dialog portal overlay
+        // Overlay dialogs
         selectedToolForDetail?.let { tool ->
             AiDetailOverlay(
                 tool = tool,
@@ -510,7 +850,6 @@ fun MainScreen(viewModel: HomeViewModel) {
             )
         }
 
-        // High premium-integrated secure web-portal dialog overlay
         activeBrowserUrl?.let { url ->
             LiteBrowserDialog(
                 initialUrl = url,
@@ -558,5 +897,4 @@ fun MainScreen(viewModel: HomeViewModel) {
             )
         }
     }
-}
 }

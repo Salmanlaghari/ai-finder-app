@@ -6,26 +6,32 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// Ultra-premium Charcoal & Deep Premium Black
-val DeepBlack = Color(0xFF0A0A0A)
-val DeepCharcoal = Color(0xFF141414)
-val MediumCharcoal = Color(0xFF1F1F1F)
+// Ultra-premium Violet-Black and Deep Dashboard tones
+val BgColor = Color(0xFF08070C)
+val CardColor = Color(0xFF131019)
+val Card2Color = Color(0xFF1A1524)
 
-// Rich Metallic Gold Accent
-val MetallicGold = Color(0xFFD4AF37)
-val GoldenGlow = Color(0xFFFFDF00)
-val PaleGold = Color(0xFFF3E5AB)
+// Premium Accents from dashboard
+val MetallicGold = Color(0xFFD4AF6A)
+val AmberAccent = Color(0xFFF2C879)
+val VioletAccent = Color(0xFF8B5CF6)
+val TextColor = Color(0xFFF6F4F1)
+val TextDimColor = Color(0xFF8D8896)
+
+// Neon gradient accents
+val CyanAccent = Color(0xFF00F2FE)
+val MagentaAccent = Color(0xFFF355DA)
 
 private val DarkColorScheme = darkColorScheme(
     primary = MetallicGold,
-    secondary = GoldenGlow,
-    tertiary = PaleGold,
-    background = DeepBlack,
-    surface = DeepCharcoal,
-    onPrimary = DeepBlack,
-    onSecondary = DeepBlack,
-    onBackground = Color.White,
-    onSurface = Color.White
+    secondary = AmberAccent,
+    tertiary = VioletAccent,
+    background = BgColor,
+    surface = CardColor,
+    onPrimary = BgColor,
+    onSecondary = BgColor,
+    onBackground = TextColor,
+    onSurface = TextColor
 )
 
 @Composable
@@ -33,7 +39,6 @@ fun AiLatestFinderTheme(
     darkTheme: Boolean = isSystemInDarkTheme(), // Always premium dark mode
     content: @Composable () -> Unit
 ) {
-    // We enforce Dark Mode regardless of system theme for that ultra-premium consistent design
     MaterialTheme(
         colorScheme = DarkColorScheme,
         content = content

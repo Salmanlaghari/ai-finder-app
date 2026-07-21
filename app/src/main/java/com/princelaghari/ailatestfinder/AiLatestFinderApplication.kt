@@ -1,7 +1,9 @@
 package com.princelaghari.ailatestfinder
 
 import android.app.Application
+import android.util.Log
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.FirebaseApp
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
@@ -15,14 +17,27 @@ import kotlinx.coroutines.launch
 class AiLatestFinderApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
+
+        // Safely initialize Firebase App to prevent default FirebaseApp not initialized crash on startup
+        try {
+            FirebaseApp.initializeApp(this)
+            Log.d("AiLatestFinderApp", "FirebaseApp initialized successfully on startup.")
+        } catch (e: Throwable) {
+            Log.w("AiLatestFinderApp", "FirebaseApp initialization safely bypassed or failed.", e)
+        }
+
         // Asynchronously initialize Google AdMob SDK on a background thread (Dispatchers.IO)
         // to prevent any block on the main UI thread during instant application startup.
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                MobileAds.initialize(this@AiLatestFinderApplication) {}
-            } catch (e: Exception) {
-                // Safe ignore if compilation sandbox environment lacks Google Play Services
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    MobileAds.initialize(this@AiLatestFinderApplication) {}
+                } catch (e: Throwable) {
+                    Log.w("AiLatestFinderApp", "AdMob SDK initialization safely bypassed or failed.", e)
+                }
             }
+        } catch (e: Throwable) {
+            Log.w("AiLatestFinderApp", "AdMob initialization block safely bypassed or failed.", e)
         }
     }
 

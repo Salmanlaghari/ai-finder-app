@@ -85,8 +85,8 @@ class AdManager @Inject constructor() {
                         preloadInterstitial(context)
                         preloadRewarded(context)
                     }
-                } catch (e: Exception) {
-                    Log.e(TAG, "AdMob SDK Initialization failed: ${e.localizedMessage}")
+                } catch (e: Throwable) {
+                    Log.e(TAG, "AdMob SDK Initialization failed safely bypassed: ${e.localizedMessage}")
                 }
             }
         }
@@ -109,36 +109,41 @@ class AdManager @Inject constructor() {
         isInterstitialLoading.set(true)
         val adRequest = AdRequest.Builder().build()
 
-        InterstitialAd.load(
-            context.applicationContext,
-            interstitialId,
-            adRequest,
-            object : InterstitialAdLoadCallback() {
-                override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                    Log.d(TAG, "Interstitial Ad Loaded Successfully.")
-                    preloadedInterstitialAd = interstitialAd
-                    isInterstitialLoading.set(false)
-                    interstitialRetryCount = 0 // Reset retry count
-                }
+        try {
+            InterstitialAd.load(
+                context.applicationContext,
+                interstitialId,
+                adRequest,
+                object : InterstitialAdLoadCallback() {
+                    override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                        Log.d(TAG, "Interstitial Ad Loaded Successfully.")
+                        preloadedInterstitialAd = interstitialAd
+                        isInterstitialLoading.set(false)
+                        interstitialRetryCount = 0 // Reset retry count
+                    }
 
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.w(TAG, "Interstitial Ad failed to load: ${error.message}")
-                    preloadedInterstitialAd = null
-                    isInterstitialLoading.set(false)
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        Log.w(TAG, "Interstitial Ad failed to load: ${error.message}")
+                        preloadedInterstitialAd = null
+                        isInterstitialLoading.set(false)
 
-                    // Graceful retry
-                    if (interstitialRetryCount < MAX_RETRY_ATTEMPTS) {
-                        interstitialRetryCount++
-                        val retryDelay = (1L shl interstitialRetryCount) * 1000 // Exponential delay (2s, 4s, 8s...)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            delay(retryDelay)
-                            Log.d(TAG, "Retrying to load Interstitial Ad (Attempt $interstitialRetryCount)")
-                            preloadInterstitial(context)
+                        // Graceful retry
+                        if (interstitialRetryCount < MAX_RETRY_ATTEMPTS) {
+                            interstitialRetryCount++
+                            val retryDelay = (1L shl interstitialRetryCount) * 1000 // Exponential delay (2s, 4s, 8s...)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                delay(retryDelay)
+                                Log.d(TAG, "Retrying to load Interstitial Ad (Attempt $interstitialRetryCount)")
+                                preloadInterstitial(context)
+                            }
                         }
                     }
                 }
-            }
-        )
+            )
+        } catch (e: Throwable) {
+            isInterstitialLoading.set(false)
+            Log.e(TAG, "Failed to load Interstitial Ad safely bypassed", e)
+        }
     }
 
     /**
@@ -151,36 +156,41 @@ class AdManager @Inject constructor() {
         isRewardedLoading.set(true)
         val adRequest = AdRequest.Builder().build()
 
-        RewardedAd.load(
-            context.applicationContext,
-            rewardedId,
-            adRequest,
-            object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(rewardedAd: RewardedAd) {
-                    Log.d(TAG, "Rewarded Ad Loaded Successfully.")
-                    preloadedRewardedAd = rewardedAd
-                    isRewardedLoading.set(false)
-                    rewardedRetryCount = 0 // Reset retry count
-                }
+        try {
+            RewardedAd.load(
+                context.applicationContext,
+                rewardedId,
+                adRequest,
+                object : RewardedAdLoadCallback() {
+                    override fun onAdLoaded(rewardedAd: RewardedAd) {
+                        Log.d(TAG, "Rewarded Ad Loaded Successfully.")
+                        preloadedRewardedAd = rewardedAd
+                        isRewardedLoading.set(false)
+                        rewardedRetryCount = 0 // Reset retry count
+                    }
 
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    Log.w(TAG, "Rewarded Ad failed to load: ${error.message}")
-                    preloadedRewardedAd = null
-                    isRewardedLoading.set(false)
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        Log.w(TAG, "Rewarded Ad failed to load: ${error.message}")
+                        preloadedRewardedAd = null
+                        isRewardedLoading.set(false)
 
-                    // Graceful retry
-                    if (rewardedRetryCount < MAX_RETRY_ATTEMPTS) {
-                        rewardedRetryCount++
-                        val retryDelay = (1L shl rewardedRetryCount) * 1000 // Exponential delay
-                        CoroutineScope(Dispatchers.IO).launch {
-                            delay(retryDelay)
-                            Log.d(TAG, "Retrying to load Rewarded Ad (Attempt $rewardedRetryCount)")
-                            preloadRewarded(context)
+                        // Graceful retry
+                        if (rewardedRetryCount < MAX_RETRY_ATTEMPTS) {
+                            rewardedRetryCount++
+                            val retryDelay = (1L shl rewardedRetryCount) * 1000 // Exponential delay
+                            CoroutineScope(Dispatchers.IO).launch {
+                                delay(retryDelay)
+                                Log.d(TAG, "Retrying to load Rewarded Ad (Attempt $rewardedRetryCount)")
+                                preloadRewarded(context)
+                            }
                         }
                     }
                 }
-            }
-        )
+            )
+        } catch (e: Throwable) {
+            isRewardedLoading.set(false)
+            Log.e(TAG, "Failed to load Rewarded Ad safely bypassed", e)
+        }
     }
 
     /**
