@@ -74,6 +74,10 @@ class HomeViewModel @Inject constructor(
     private val _defaultSearchEngine = MutableStateFlow("Google")
     val defaultSearchEngine: StateFlow<String> = _defaultSearchEngine.asStateFlow()
 
+    // Upgraded Premium Browser Search Query & Curated Results
+    private val _browserSearchQuery = MutableStateFlow("")
+    val browserSearchQuery: StateFlow<String> = _browserSearchQuery.asStateFlow()
+
     private val _syncTrigger = MutableStateFlow(0)
 
     // Network Callbacks
@@ -191,10 +195,90 @@ class HomeViewModel @Inject constructor(
         initialValue = emptyList()
     )
 
+    /**
+     * Combines browserSearchQuery and aiTools dataset to filter strictly AI-related platforms.
+     */
+    val browserResults: StateFlow<List<AiTool>> = combine(
+        _browserSearchQuery,
+        aiTools
+    ) { query, tools ->
+        val trimmed = query.trim().lowercase()
+        if (trimmed.isEmpty()) {
+            // Default curated premium results shown initially
+            listOf(
+                AiTool(
+                    id = "b-gemini", name = "Google Gemini 3", category = "Text AI",
+                    description = "Official announcement, multi-modal features & documentation.",
+                    imageUrl = "", toolUrl = "https://gemini.google.com", pricing = "Free",
+                    platforms = listOf("Web"), developer = "Google", company = "Google",
+                    status = "Trending", launchYear = "2024", tags = listOf("google", "gemini"),
+                    alternatives = emptyList()
+                ),
+                AiTool(
+                    id = "b-claude", name = "Claude Opus 4.8", category = "Text AI",
+                    description = "Anthropic core model card, advanced reasoning benchmarks & system cards.",
+                    imageUrl = "", toolUrl = "https://claude.ai", pricing = "Free",
+                    platforms = listOf("Web"), developer = "Anthropic", company = "Anthropic",
+                    status = "Trending", launchYear = "2024", tags = listOf("anthropic", "claude"),
+                    alternatives = emptyList()
+                ),
+                AiTool(
+                    id = "b-midjourney", name = "Midjourney v7", category = "Image AI",
+                    description = "New style reference guide, prompt formats, and visual parameter tuning.",
+                    imageUrl = "", toolUrl = "https://midjourney.com", pricing = "Paid",
+                    platforms = listOf("Web"), developer = "Midjourney Lab", company = "Midjourney",
+                    status = "Trending", launchYear = "2024", tags = listOf("midjourney", "art"),
+                    alternatives = emptyList()
+                ),
+                AiTool(
+                    id = "b-deepseek", name = "DeepSeek R1", category = "Text AI",
+                    description = "Reasoning-focused open weights model deployment and API guides.",
+                    imageUrl = "", toolUrl = "https://deepseek.com", pricing = "Free",
+                    platforms = listOf("Web"), developer = "DeepSeek", company = "DeepSeek",
+                    status = "Trending", launchYear = "2025", tags = listOf("deepseek", "r1"),
+                    alternatives = emptyList()
+                ),
+                AiTool(
+                    id = "b-sora", name = "OpenAI Sora v2", category = "Video AI",
+                    description = "Cinematic high-fidelity video generation documentation and prompts.",
+                    imageUrl = "", toolUrl = "https://openai.com/sora", pricing = "Paid",
+                    platforms = listOf("Web"), developer = "OpenAI", company = "OpenAI",
+                    status = "Trending", launchYear = "2024", tags = listOf("openai", "sora"),
+                    alternatives = emptyList()
+                ),
+                AiTool(
+                    id = "b-suno", name = "Suno AI Music v4", category = "Music AI",
+                    description = "High-fidelity generation guides, custom prompt lyrics and audio presets.",
+                    imageUrl = "", toolUrl = "https://suno.com", pricing = "Free",
+                    platforms = listOf("Web"), developer = "Suno", company = "Suno",
+                    status = "Trending", launchYear = "2024", tags = listOf("suno", "music"),
+                    alternatives = emptyList()
+                )
+            )
+        } else {
+            // Apply filtering logic to find matching AI tools / models / docs from the global 1,020 dataset
+            tools.filter { tool ->
+                tool.name.lowercase().contains(trimmed) ||
+                tool.description.lowercase().contains(trimmed) ||
+                tool.category.lowercase().contains(trimmed) ||
+                tool.tags.any { it.lowercase().contains(trimmed) }
+            }
+        }
+    }.flowOn(Dispatchers.Default)
+    .stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
         // Reset limit on search
         _visibleItemLimit.value = 50
+    }
+
+    fun onBrowserSearchQueryChanged(newQuery: String) {
+        _browserSearchQuery.value = newQuery
     }
 
     fun onCategorySelected(category: String) {

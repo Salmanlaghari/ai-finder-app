@@ -1,12 +1,18 @@
 package com.princelaghari.ailatestfinder.presentation
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.view.WindowManager
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.EaseOutQuad
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
@@ -24,15 +30,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import android.widget.Toast
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +47,6 @@ import com.princelaghari.ailatestfinder.domain.model.AiTool
 import com.princelaghari.ailatestfinder.presentation.components.*
 import com.princelaghari.ailatestfinder.presentation.theme.*
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -49,6 +55,30 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Request 120Hz Refresh Rate on supported devices for Buttery-Smooth 120 FPS scrolling experience
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                // Method 1: Display Mode Configuration using preferredDisplayModeId
+                window.windowManager.defaultDisplay?.let { display ->
+                    val supportedModes = display.supportedModes
+                    val maxMode = supportedModes.maxByOrNull { it.refreshRate }
+                    if (maxMode != null && maxMode.refreshRate >= 90f) {
+                        val params = window.attributes
+                        params.preferredDisplayModeId = maxMode.modeId
+                        window.attributes = params
+                    }
+                }
+            } else {
+                // Method 2: Legacy Display Mode attributes
+                val params = window.attributes
+                params.preferredRefreshRate = 120f
+                window.attributes = params
+            }
+        } catch (e: Exception) {
+            // Safe fallback on unsupported emulators or older devices
+        }
+
         setContent {
             AiLatestFinderTheme {
                 val isAppLoading by viewModel.isAppLoading.collectAsState()
@@ -88,16 +118,18 @@ fun MainScreen(viewModel: HomeViewModel) {
     val recentlyViewedIds by viewModel.recentlyViewedIds.collectAsState()
     val selectedSortOption by viewModel.selectedSortOption.collectAsState()
 
-    // Bottom Navigation View Mode (Home, Categories, Saved, Profile)
+    // Upgraded Premium Browser States
+    val browserSearchQuery by viewModel.browserSearchQuery.collectAsState()
+    val browserResults by viewModel.browserResults.collectAsState()
+
+    // Bottom Navigation View Mode: Home, Browser, Saved, Profile
     var activeViewMode by remember { mutableStateOf("Home") }
 
     // Dialog state controllers
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
     var activeBrowserUrl by remember { mutableStateOf<String?>(null) }
     var showExternalSearchPanel by remember { mutableStateOf(false) }
-    var showSettings by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
-    var showPrivacyPolicy by remember { mutableStateOf(false) }
 
     val isCompactMode by viewModel.isCompactMode.collectAsState()
     val defaultSearchEngine by viewModel.defaultSearchEngine.collectAsState()
@@ -125,622 +157,495 @@ fun MainScreen(viewModel: HomeViewModel) {
             .fillMaxSize()
             .background(BgColor)
     ) {
-        // Main Scrollable Area
+        // Main View Port routing based on active bottom navigation mode
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 80.dp) // Leave exact space for floating navigation bar
         ) {
-            // Dashboard Layout
-            if (activeViewMode == "Home" && searchQuery.isEmpty()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    // Header Greet Panel
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 26.dp, bottom = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Welcome back 👋",
-                                fontSize = 12.5.sp,
-                                color = TextDimColor,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "Explore AI Tools",
-                                fontSize = 21.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = TextColor,
-                                letterSpacing = 0.5.sp
-                            )
-                        }
-                        // Bell Button to open About Info Panel
-                        Box(
+            when (activeViewMode) {
+                "Home" -> {
+                    if (searchQuery.isEmpty()) {
+                        Column(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(CardColor)
-                                .border(1.dp, Card2Color, RoundedCornerShape(14.dp))
-                                .clickable { showAbout = true },
-                            contentAlignment = Alignment.Center
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            Text(
-                                text = "🔔",
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-
-                    // Stats Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Total Tools Card
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = CardColor),
-                            modifier = Modifier
-                                .weight(1.0f)
-                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Text(
-                                    text = "1020",
-                                    fontSize = 19.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = AmberAccent
-                                )
-                                Text(
-                                    text = "AI Tools Listed",
-                                    fontSize = 10.5.sp,
-                                    color = TextDimColor,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                        }
-
-                        // Categories Card
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = CardColor),
-                            modifier = Modifier
-                                .weight(1.0f)
-                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Text(
-                                    text = "24",
-                                    fontSize = 19.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = VioletAccent
-                                )
-                                Text(
-                                    text = "Categories",
-                                    fontSize = 10.5.sp,
-                                    color = TextDimColor,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                        }
-
-                        // Added Today Card
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = CardColor),
-                            modifier = Modifier
-                                .weight(1.0f)
-                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Text(
-                                    text = "12",
-                                    fontSize = 19.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = TextColor
-                                )
-                                Text(
-                                    text = "Added Today",
-                                    fontSize = 10.5.sp,
-                                    color = TextDimColor,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    // Search input Section
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 20.dp)
-                    ) {
-                        PulsingSearchBox(
-                            query = searchQuery,
-                            onQueryChanged = { viewModel.onSearchQueryChanged(it) },
-                            onExternalSearchClicked = { showExternalSearchPanel = true }
-                        )
-                    }
-
-                    // Horizontal Category filters
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 18.dp)
-                    ) {
-                        CategoryChips(
-                            selectedCategory = selectedCategory,
-                            onCategorySelected = { viewModel.onCategorySelected(it) }
-                        )
-                    }
-
-                    // Shimmering branding row
-                    ShimmerBrandingText(modifier = Modifier.padding(vertical = 4.dp))
-
-                    // Featured This Week Carousel
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 20.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Featured This Week",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = TextColor
-                            )
-                            Text(
-                                text = "See All",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AmberAccent,
-                                modifier = Modifier.clickable { activeViewMode = "Categories" }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(14.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            val featuredList = listOf(
-                                Triple("Claude Opus", "Advanced reasoning & long context", Color(0xFF3B2D6B)),
-                                Triple("Runway Gen-4", "Cinematic AI video generation", Color(0xFF6B4A1F))
-                            )
-                            items(featuredList) { (name, desc, bgCol) ->
+                            // Header Greet Panel
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 26.dp, bottom = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Welcome back 👋",
+                                        fontSize = 12.5.sp,
+                                        color = TextDimColor,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text = "Explore AI Tools",
+                                        fontSize = 21.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = TextColor,
+                                        letterSpacing = 0.5.sp
+                                    )
+                                }
+                                // Bell Button to open About Info Panel
                                 Box(
                                     modifier = Modifier
-                                        .width(220.dp)
-                                        .height(130.dp)
-                                        .clip(RoundedCornerShape(20.dp))
-                                        .background(
-                                            Brush.linearGradient(
-                                                listOf(
-                                                    bgCol,
-                                                    bgCol.copy(alpha = 0.3f),
-                                                    CardColor
-                                                )
-                                            )
-                                        )
-                                        .border(1.dp, Card2Color, RoundedCornerShape(20.dp))
-                                        .clickable {
-                                            val tool = rawAiTools.find { it.name.contains(name.split(" ")[0]) }
-                                            if (tool != null) {
-                                                viewModel.addToRecentlyViewed(tool.id)
-                                                selectedToolForDetail = tool
-                                            } else {
-                                                activeBrowserUrl = if (name.contains("Claude")) "https://claude.ai" else "https://runwayml.com"
-                                            }
-                                        }
-                                        .padding(18.dp)
+                                        .size(40.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(CardColor)
+                                        .border(1.dp, Card2Color, RoundedCornerShape(14.dp))
+                                        .clickable { showAbout = true },
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
-                                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                                    ) {
-                                        Text(
-                                            text = if (name.contains("Claude")) "Editor's Pick" else "New",
-                                            color = Color.White,
-                                            fontSize = 9.5.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                    Column(
-                                        modifier = Modifier.align(Alignment.BottomStart)
-                                    ) {
-                                        Text(
-                                            text = name,
-                                            color = Color.White,
-                                            fontSize = 15.sp,
-                                            fontWeight = FontWeight.ExtraBold
-                                        )
-                                        Text(
-                                            text = desc,
-                                            color = Color.White.copy(alpha = 0.7f),
-                                            fontSize = 11.sp,
-                                            modifier = Modifier.padding(top = 4.dp),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Top Rated Tools 2x2 Grid
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 26.dp, bottom = 20.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Top Rated Tools",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = TextColor
-                            )
-                            Text(
-                                text = "See All",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = AmberAccent,
-                                modifier = Modifier.clickable { activeViewMode = "Categories" }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        val ratingTiles = listOf(
-                            Triple("Gemini 1.5", "Multimodal AI", "G"),
-                            Triple("Perplexity", "AI Search", "P"),
-                            Triple("Phind", "Dev Search", "Ph"),
-                            Triple("DALL-E 3", "Image AI", "D3")
-                        )
-
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            ratingTiles.chunked(2).forEach { rowItems ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                ) {
-                                    rowItems.forEach { (name, sub, iconChar) ->
-                                        val (avatarColor, badgeCol) = when (iconChar) {
-                                            "G" -> Pair(Color(0xFF3B82F6).copy(alpha = 0.15f), Color(0xFF60A5FA))
-                                            "P" -> Pair(Color(0xFF8B5CF6).copy(alpha = 0.15f), Color(0xFFA78BFA))
-                                            "Ph" -> Pair(Color(0xFF2DD4BF).copy(alpha = 0.15f), Color(0xFF2DD4BF))
-                                            else -> Pair(AmberAccent.copy(alpha = 0.15f), AmberAccent)
-                                        }
-
-                                        Card(
-                                            colors = CardDefaults.cardColors(containerColor = CardColor),
-                                            shape = RoundedCornerShape(18.dp),
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .border(1.dp, Card2Color, RoundedCornerShape(18.dp))
-                                                .clickable {
-                                                    val matchedTool = rawAiTools.find { it.name.contains(name.split(" ")[0]) }
-                                                    if (matchedTool != null) {
-                                                        viewModel.addToRecentlyViewed(matchedTool.id)
-                                                        selectedToolForDetail = matchedTool
-                                                    } else {
-                                                        activeBrowserUrl = when (iconChar) {
-                                                            "G" -> "https://gemini.google.com"
-                                                            "P" -> "https://perplexity.ai"
-                                                            "Ph" -> "https://phind.com"
-                                                            else -> "https://openai.com/dall-e-3"
-                                                        }
-                                                    }
-                                                }
-                                        ) {
-                                            Column(modifier = Modifier.padding(16.dp)) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(42.dp)
-                                                        .background(avatarColor, RoundedCornerShape(12.dp)),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = iconChar,
-                                                        color = badgeCol,
-                                                        fontWeight = FontWeight.ExtraBold,
-                                                        fontSize = 16.sp
-                                                    )
-                                                }
-                                                Spacer(modifier = Modifier.height(10.dp))
-                                                Text(
-                                                    text = name,
-                                                    color = TextColor,
-                                                    fontSize = 13.5.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                                Text(
-                                                    text = sub,
-                                                    color = TextDimColor,
-                                                    fontSize = 10.5.sp,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.padding(top = 3.dp)
-                                                )
-                                                Text(
-                                                    text = "★★★★★ " + if (iconChar == "G") "4.8" else if (iconChar == "P") "4.7" else if (iconChar == "Ph") "4.3" else "4.9",
-                                                    color = AmberAccent,
-                                                    fontSize = 10.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.padding(top = 8.dp)
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Buy Me Coffee Integration inside Home Feed
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Card2Color),
-                        shape = RoundedCornerShape(18.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp, vertical = 10.dp)
-                            .border(1.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(18.dp))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Support Prince Laghari ☕",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextColor
-                                )
-                                Text(
-                                    text = "Keep the premium AI directory active & updated",
-                                    fontSize = 10.5.sp,
-                                    color = TextDimColor,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                            Button(
-                                onClick = {
-                                    openUrlWithChromeCustomTabs(context, "https://buymeacoffee.com/princelaghari")
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = AmberAccent),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                                shape = RoundedCornerShape(10.dp)
-                            ) {
-                                Text(
-                                    text = "Support",
-                                    color = Color.Black,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 11.sp
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-            } else {
-                // List View (triggers when Category selected, Search query active, Saved tab, or History tab)
-                val activeList = remember(aiTools, activeViewMode, favoriteIds, recentlyViewedIds) {
-                    when (activeViewMode) {
-                        "Saved" -> aiTools.filter { favoriteIds.contains(it.id) }
-                        "History" -> {
-                            val historyList = mutableListOf<AiTool>()
-                            recentlyViewedIds.forEach { id ->
-                                aiTools.find { it.id == id }?.let { historyList.add(it) }
-                            }
-                            historyList
-                        }
-                        else -> aiTools
-                    }
-                }
-
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                            .padding(top = 26.dp, bottom = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = when (activeViewMode) {
-                                "Saved" -> "Saved Shortlist"
-                                "History" -> "Recently Viewed"
-                                else -> "AI Tools Explorer"
-                            },
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = TextColor
-                        )
-                        if (activeViewMode == "Categories") {
-                            Text(
-                                text = "Sort: $selectedSortOption",
-                                fontSize = 11.5.sp,
-                                color = AmberAccent,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier
-                                    .border(0.5.dp, AmberAccent.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                    .clickable {
-                                        val nextSort = when (selectedSortOption) {
-                                            "Popular" -> "Trending"
-                                            "Trending" -> "Newest"
-                                            "Newest" -> "A-Z"
-                                            else -> "Popular"
-                                        }
-                                        viewModel.onSortOptionSelected(nextSort)
-                                    }
-                                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                            )
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp)
-                    ) {
-                        PulsingSearchBox(
-                            query = searchQuery,
-                            onQueryChanged = { viewModel.onSearchQueryChanged(it) },
-                            onExternalSearchClicked = { showExternalSearchPanel = true }
-                        )
-                    }
-
-                    // Suggestions Overlay Dropdown
-                    if (suggestions.isNotEmpty()) {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = CardColor),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 22.dp, vertical = 4.dp)
-                                .border(1.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
-                        ) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Text(
-                                    text = "SUGGESTIONS",
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = AmberAccent,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                )
-                                suggestions.forEach { name ->
                                     Text(
-                                        text = name,
-                                        color = TextColor,
-                                        fontSize = 13.sp,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable {
-                                                viewModel.onSearchQueryChanged(name)
-                                                focusManager.clearFocus()
-                                            }
-                                            .padding(horizontal = 8.dp, vertical = 8.dp)
+                                        text = "🔔",
+                                        fontSize = 16.sp
                                     )
                                 }
                             }
-                        }
-                    }
 
-                    if (activeViewMode == "Categories") {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 22.dp)
-                        ) {
-                            CategoryChips(
-                                selectedCategory = selectedCategory,
-                                onCategorySelected = { viewModel.onCategorySelected(it) }
+                            // Stats Row
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 20.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                // Total Tools Card
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = CardColor),
+                                    modifier = Modifier
+                                        .weight(1.0f)
+                                        .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(
+                                            text = "1020",
+                                            fontSize = 19.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = AmberAccent
+                                        )
+                                        Text(
+                                            text = "AI Tools Listed",
+                                            fontSize = 10.5.sp,
+                                            color = TextDimColor,
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
+
+                                // Categories Card
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = CardColor),
+                                    modifier = Modifier
+                                        .weight(1.0f)
+                                        .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(
+                                            text = "24",
+                                            fontSize = 19.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = VioletAccent
+                                        )
+                                        Text(
+                                            text = "Categories",
+                                            fontSize = 10.5.sp,
+                                            color = TextDimColor,
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
+
+                                // Added Today Card
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = CardColor),
+                                    modifier = Modifier
+                                        .weight(1.0f)
+                                        .border(1.dp, Card2Color, RoundedCornerShape(16.dp)),
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(
+                                            text = "12",
+                                            fontSize = 19.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = TextColor
+                                        )
+                                        Text(
+                                            text = "Added Today",
+                                            fontSize = 10.5.sp,
+                                            color = TextDimColor,
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Search input Section
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 20.dp)
+                            ) {
+                                PulsingSearchBox(
+                                    query = searchQuery,
+                                    onQueryChanged = { viewModel.onSearchQueryChanged(it) },
+                                    onExternalSearchClicked = { showExternalSearchPanel = true }
+                                )
+                            }
+
+                            // Horizontal Category filters
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 18.dp)
+                            ) {
+                                CategoryChips(
+                                    selectedCategory = selectedCategory,
+                                    onCategorySelected = { viewModel.onCategorySelected(it) }
+                                )
+                            }
+
+                            // Shimmering branding row
+                            ShimmerBrandingText(modifier = Modifier.padding(vertical = 4.dp))
+
+                            // Featured This Week Carousel
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 20.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Featured This Week",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = TextColor
+                                    )
+                                    Text(
+                                        text = "See All",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AmberAccent,
+                                        modifier = Modifier.clickable { activeViewMode = "Browser" }
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    val featuredList = listOf(
+                                        Triple("Claude Opus", "Advanced reasoning & long context", Color(0xFF3B2D6B)),
+                                        Triple("Runway Gen-4", "Cinematic AI video generation", Color(0xFF6B4A1F))
+                                    )
+                                    items(featuredList) { (name, desc, bgCol) ->
+                                        Box(
+                                            modifier = Modifier
+                                                .width(220.dp)
+                                                .height(130.dp)
+                                                .clip(RoundedCornerShape(20.dp))
+                                                .background(
+                                                    Brush.linearGradient(
+                                                        listOf(
+                                                            bgCol,
+                                                            bgCol.copy(alpha = 0.3f),
+                                                            CardColor
+                                                        )
+                                                    )
+                                                )
+                                                .border(1.dp, Card2Color, RoundedCornerShape(20.dp))
+                                                .clickable {
+                                                    val tool = rawAiTools.find { it.name.contains(name.split(" ")[0]) }
+                                                    if (tool != null) {
+                                                        viewModel.addToRecentlyViewed(tool.id)
+                                                        selectedToolForDetail = tool
+                                                    } else {
+                                                        activeBrowserUrl = if (name.contains("Claude")) "https://claude.ai" else "https://runwayml.com"
+                                                    }
+                                                }
+                                                .padding(18.dp)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                                    .background(Color.White.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
+                                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                                            ) {
+                                                Text(
+                                                    text = if (name.contains("Claude")) "Editor's Pick" else "New",
+                                                    color = Color.White,
+                                                    fontSize = 9.5.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                            Column(
+                                                modifier = Modifier.align(Alignment.BottomStart)
+                                            ) {
+                                                Text(
+                                                    text = name,
+                                                    color = Color.White,
+                                                    fontSize = 15.sp,
+                                                    fontWeight = FontWeight.ExtraBold
+                                                )
+                                                Text(
+                                                    text = desc,
+                                                    color = Color.White.copy(alpha = 0.7f),
+                                                    fontSize = 11.sp,
+                                                    modifier = Modifier.padding(top = 4.dp),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Top Rated Tools 2x2 Grid
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 26.dp, bottom = 20.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Top Rated Tools",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = TextColor
+                                    )
+                                    Text(
+                                        text = "See All",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = AmberAccent,
+                                        modifier = Modifier.clickable { activeViewMode = "Browser" }
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                val ratingTiles = listOf(
+                                    Triple("Gemini 1.5", "Multimodal AI", "G"),
+                                    Triple("Perplexity", "AI Search", "P"),
+                                    Triple("Phind", "Dev Search", "Ph"),
+                                    Triple("DALL-E 3", "Image AI", "D3")
+                                )
+
+                                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    ratingTiles.chunked(2).forEach { rowItems ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            rowItems.forEach { (name, sub, iconChar) ->
+                                                val (avatarColor, badgeCol) = when (iconChar) {
+                                                    "G" -> Pair(Color(0xFF3B82F6).copy(alpha = 0.15f), Color(0xFF60A5FA))
+                                                    "P" -> Pair(Color(0xFF8B5CF6).copy(alpha = 0.15f), Color(0xFFA78BFA))
+                                                    "Ph" -> Pair(Color(0xFF2DD4BF).copy(alpha = 0.15f), Color(0xFF2DD4BF))
+                                                    else -> Pair(AmberAccent.copy(alpha = 0.15f), AmberAccent)
+                                                }
+
+                                                Card(
+                                                    colors = CardDefaults.cardColors(containerColor = CardColor),
+                                                    shape = RoundedCornerShape(18.dp),
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .border(1.dp, Card2Color, RoundedCornerShape(18.dp))
+                                                        .clickable {
+                                                            val matchedTool = rawAiTools.find { it.name.contains(name.split(" ")[0]) }
+                                                            if (matchedTool != null) {
+                                                                viewModel.addToRecentlyViewed(matchedTool.id)
+                                                                selectedToolForDetail = matchedTool
+                                                            } else {
+                                                                activeBrowserUrl = when (iconChar) {
+                                                                    "G" -> "https://gemini.google.com"
+                                                                    "P" -> "https://perplexity.ai"
+                                                                    "Ph" -> "https://phind.com"
+                                                                    else -> "https://openai.com/dall-e-3"
+                                                                }
+                                                            }
+                                                        }
+                                                ) {
+                                                    Column(modifier = Modifier.padding(16.dp)) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(42.dp)
+                                                                .background(avatarColor, RoundedCornerShape(12.dp)),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Text(
+                                                                text = iconChar,
+                                                                color = badgeCol,
+                                                                fontWeight = FontWeight.ExtraBold,
+                                                                fontSize = 16.sp
+                                                            )
+                                                        }
+                                                        Spacer(modifier = Modifier.height(10.dp))
+                                                        Text(
+                                                            text = name,
+                                                            color = TextColor,
+                                                            fontSize = 13.5.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis
+                                                        )
+                                                        Text(
+                                                            text = sub,
+                                                            color = TextDimColor,
+                                                            fontSize = 10.5.sp,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                            modifier = Modifier.padding(top = 3.dp)
+                                                        )
+                                                        Text(
+                                                            text = "★★★★★ " + if (iconChar == "G") "4.8" else if (iconChar == "P") "4.7" else if (iconChar == "Ph") "4.3" else "4.9",
+                                                            color = AmberAccent,
+                                                            fontSize = 10.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            modifier = Modifier.padding(top = 8.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Curation Admin label
+                            Text(
+                                text = "Prince Laghari • Admin",
+                                color = AmberAccent.copy(alpha = 0.6f),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                textAlign = TextAlign.Center
                             )
                         }
-                    }
-                }
-
-                // Listing Scroll panel
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(horizontal = 22.dp)
-                ) {
-                    if (activeList.isEmpty() && searchQuery.isEmpty()) {
+                    } else {
+                        // Main feed query results
                         Column(modifier = Modifier.fillMaxSize()) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                                    .padding(horizontal = 22.dp)
+                                    .padding(top = 26.dp, bottom = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                CircularProgressIndicator(
-                                    color = AmberAccent,
-                                    strokeWidth = 2.dp,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    text = "Connecting to Firestore...",
+                                    text = "Search Matches",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TextColor
+                                )
+                                Text(
+                                    text = "Sort: $selectedSortOption",
+                                    fontSize = 11.5.sp,
                                     color = AmberAccent,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp
+                                    modifier = Modifier
+                                        .border(0.5.dp, AmberAccent.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                        .clickable {
+                                            val nextSort = when (selectedSortOption) {
+                                                "Popular" -> "Trending"
+                                                "Trending" -> "Newest"
+                                                "Newest" -> "A-Z"
+                                                else -> "Popular"
+                                            }
+                                            viewModel.onSortOptionSelected(nextSort)
+                                        }
+                                        .padding(horizontal = 10.dp, vertical = 5.dp)
                                 )
                             }
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                items(5) {
-                                    AiToolCardSkeleton()
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 22.dp)
+                            ) {
+                                PulsingSearchBox(
+                                    query = searchQuery,
+                                    onQueryChanged = { viewModel.onSearchQueryChanged(it) },
+                                    onExternalSearchClicked = { showExternalSearchPanel = true }
+                                )
+                            }
+
+                            // Suggestions Dropdown Overlay
+                            if (suggestions.isNotEmpty()) {
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = CardColor),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 22.dp, vertical = 4.dp)
+                                        .border(1.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                                ) {
+                                    Column(modifier = Modifier.padding(8.dp)) {
+                                        Text(
+                                            text = "SUGGESTIONS",
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = AmberAccent,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                        )
+                                        suggestions.forEach { name ->
+                                            Text(
+                                                text = name,
+                                                color = TextColor,
+                                                fontSize = 13.sp,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        viewModel.onSearchQueryChanged(name)
+                                                        focusManager.clearFocus()
+                                                    }
+                                                    .padding(horizontal = 8.dp, vertical = 8.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
-                        }
-                    } else if (activeList.isEmpty()) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "No tools matched your filters",
-                                    color = TextDimColor,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    text = "Try clearing search words or adding items",
-                                    color = TextDimColor.copy(alpha = 0.6f),
-                                    fontSize = 12.sp,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-                    } else {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            itemsIndexed(
-                                items = activeList,
-                                key = { _, tool -> tool.id }
-                            ) { index, tool ->
-                                Box(modifier = Modifier.fillMaxWidth()) {
+
+                            LazyColumn(
+                                state = listState,
+                                contentPadding = PaddingValues(horizontal = 22.dp, vertical = 10.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                itemsIndexed(
+                                    items = aiTools,
+                                    key = { _, tool -> tool.id }
+                                ) { index, tool ->
                                     AiToolCard(
                                         tool = tool,
                                         searchQuery = searchQuery,
@@ -755,10 +660,471 @@ fun MainScreen(viewModel: HomeViewModel) {
                         }
                     }
                 }
+
+                "Browser" -> {
+                    // UPGRADED PREMIUM AI BROWSER VIEW MODE
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 22.dp)
+                    ) {
+                        // Premium Header Layer
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 26.dp, bottom = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(
+                                        Brush.linearGradient(listOf(Color(0xFFA78BFA), Color(0xFF3FF0FF))),
+                                        RoundedCornerShape(11.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = "🌐", fontSize = 16.sp)
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Premium AI Browser",
+                                fontSize = 19.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextColor
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        Brush.linearGradient(listOf(AmberAccent, Color(0xFFFFE08A))),
+                                        RoundedCornerShape(12.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "PRO",
+                                    color = Color(0xFF241A03),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+
+                        // Search box
+                        PulsingSearchBox(
+                            query = browserSearchQuery,
+                            onQueryChanged = { viewModel.onBrowserSearchQueryChanged(it) },
+                            onExternalSearchClicked = { showExternalSearchPanel = true },
+                            placeholderText = "Search AI tools, models, news..."
+                        )
+
+                        // Gold filter note under search
+                        Text(
+                            text = "⚡ Sirf AI-related results dikhaye jaate hain — non-AI content filter ho jata hai",
+                            color = AmberAccent,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(top = 10.dp, bottom = 14.dp)
+                        )
+
+                        // Scrollable browser search matches
+                        if (browserResults.isEmpty()) {
+                            Box(
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No AI results matched your search",
+                                    color = TextDimColor,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(bottom = 12.dp)
+                            ) {
+                                itemsIndexed(
+                                    items = browserResults,
+                                    key = { _, tool -> "browser-${tool.id}" }
+                                ) { _, tool ->
+                                    BrowserResultCard(
+                                        tool = tool,
+                                        onCardClicked = { clicked ->
+                                            activeBrowserUrl = clicked.toolUrl
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                "Saved" -> {
+                    val savedList = aiTools.filter { favoriteIds.contains(it.id) }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 22.dp)
+                    ) {
+                        Text(
+                            text = "Saved Shortlist",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = TextColor,
+                            modifier = Modifier.padding(top = 26.dp, bottom = 14.dp)
+                        )
+
+                        if (savedList.isEmpty()) {
+                            Box(
+                                modifier = Modifier.weight(1f).fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "Your Saved Shortlist is Empty",
+                                        color = TextDimColor,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Tap heart on AI cards to save them here",
+                                        color = TextDimColor.copy(alpha = 0.6f),
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(top = 4.dp)
+                                    )
+                                }
+                            }
+                        } else {
+                            LazyColumn(modifier = Modifier.weight(1f)) {
+                                itemsIndexed(
+                                    items = savedList,
+                                    key = { _, tool -> "saved-${tool.id}" }
+                                ) { _, tool ->
+                                    AiToolCard(
+                                        tool = tool,
+                                        isCompactMode = isCompactMode,
+                                        onCardClicked = { clicked ->
+                                            viewModel.addToRecentlyViewed(clicked.id)
+                                            selectedToolForDetail = clicked
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                "Profile" -> {
+                    // DEDICATED FULL VIEW PREMIUM PROFILE SCREEN
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 22.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 26.dp, bottom = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Premium Dashboard",
+                                fontSize = 21.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextColor
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Premium3DLogo(size = 40)
+                        }
+
+                        // 120 FPS Status Badge
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .graphicsLayer {
+                                    shadowElevation = 3f
+                                    clip = true
+                                }
+                                .background(
+                                    brush = Brush.linearGradient(
+                                        listOf(
+                                            Color(0xFF3FF0FF).copy(alpha = 0.15f),
+                                            Color(0xFF8B5C2F).copy(alpha = 0.05f)
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0xFF3FF0FF).copy(alpha = 0.35f),
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                                .padding(14.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "120",
+                                    fontSize = 24.sp,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color(0xFF3FF0FF)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = "FPS Ultra-Smooth Mode",
+                                        color = TextColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Buttery-smooth animations and UI is ACTIVE",
+                                        color = TextDimColor,
+                                        fontSize = 10.5.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Buy Me a Coffee Card (Easypaisa)
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1408)),
+                            shape = RoundedCornerShape(20.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = 1.dp,
+                                    color = AmberAccent.copy(alpha = 0.35f),
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                        ) {
+                            Column(modifier = Modifier.padding(18.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = "☕", fontSize = 22.sp)
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = "Buy Me a Coffee",
+                                        fontSize = 15.5.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = AmberAccent
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Agar app pasand aayi to support kar sakte hain — Easypaisa ke zariye direct payment send karein.",
+                                    color = TextDimColor,
+                                    fontSize = 11.5.sp,
+                                    lineHeight = 16.sp
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                // Easypaisa box
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+                                        .border(
+                                            width = 1.dp,
+                                            brush = Brush.sweepGradient(listOf(AmberAccent.copy(alpha = 0.4f), Color.Transparent)),
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column {
+                                        Text(text = "Easypaisa Number", fontSize = 10.sp, color = TextDimColor)
+                                        Text(
+                                            text = "0310 3138887",
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = TextColor,
+                                            letterSpacing = 0.5.sp
+                                        )
+                                    }
+                                    Button(
+                                        onClick = {
+                                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = ClipData.newPlainText("Easypaisa Number", "03103138887")
+                                            clipboard.setPrimaryClip(clip)
+                                            Toast.makeText(context, "Easypaisa Number Copied! ☕", Toast.LENGTH_SHORT).show()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = AmberAccent.copy(alpha = 0.15f)),
+                                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                                        shape = RoundedCornerShape(10.dp)
+                                    ) {
+                                        Text(
+                                            text = "Copy",
+                                            color = AmberAccent,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Contact / Hire-Me Section
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = CardColor),
+                            shape = RoundedCornerShape(16.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, Card2Color, RoundedCornerShape(16.dp))
+                                .clickable {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                            data = Uri.parse("mailto:laghariprince2@gmail.com")
+                                            putExtra(Intent.EXTRA_SUBJECT, "App Development Inquiry - Prince Laghari")
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Contact: laghariprince2@gmail.com", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Text(
+                                    text = "Apni app banwani hai?",
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.5.sp
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = "Contact: ", color = TextDimColor, fontSize = 11.5.sp)
+                                    Text(
+                                        text = "laghariprince2@gmail.com",
+                                        color = AmberAccent,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.5.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        // Settings Preferences integrated
+                        Text(
+                            text = "APP CONFIGURATION",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = AmberAccent,
+                            letterSpacing = 1.5.sp
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Toggle Compact Mode
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = "Compact Card Mode", color = TextColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                                Text(text = "High-density dashboard list spacing", color = TextDimColor, fontSize = 11.sp)
+                            }
+                            Switch(
+                                checked = isCompactMode,
+                                onCheckedChange = { viewModel.toggleCompactMode(it) },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = CardColor,
+                                    checkedTrackColor = AmberAccent,
+                                    uncheckedThumbColor = TextDimColor,
+                                    uncheckedTrackColor = Card2Color
+                                )
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // External Search Engine selector
+                        Text(text = "External Search Portal Provider", color = TextColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf("Google", "DuckDuckGo", "Perplexity").forEach { engine ->
+                                val isSelected = engine == defaultSearchEngine
+                                Box(
+                                    modifier = Modifier
+                                        .background(if (isSelected) AmberAccent.copy(alpha = 0.15f) else Color.Transparent, RoundedCornerShape(10.dp))
+                                        .border(0.5.dp, if (isSelected) AmberAccent else TextDimColor.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                                        .clickable { viewModel.selectSearchEngine(engine) }
+                                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = engine,
+                                        color = if (isSelected) AmberAccent else TextDimColor,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Data Actions
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    viewModel.clearAllHistory()
+                                    Toast.makeText(context, "History cleared successfully", Toast.LENGTH_SHORT).show()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(text = "Clear History", color = TextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(
+                                onClick = {
+                                    viewModel.clearAllFavorites()
+                                    Toast.makeText(context, "Favorites cleared successfully", Toast.LENGTH_SHORT).show()
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text(text = "Clear Saved", color = TextColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // About trigger button
+                        Button(
+                            onClick = { showAbout = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = CardColor),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, Card2Color, RoundedCornerShape(10.dp)),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text(text = "About & Curation Info ✦", color = AmberAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                    }
+                }
             }
         }
 
-        // Floating Bottom Navigation (Home, Categories, Saved, Profile)
+        // Floating Bottom Navigation (Home, Browser, Saved, Profile)
         Card(
             colors = CardDefaults.cardColors(containerColor = Color(0xFA08070C)),
             shape = RoundedCornerShape(24.dp),
@@ -777,7 +1143,7 @@ fun MainScreen(viewModel: HomeViewModel) {
             ) {
                 val navItems = listOf(
                     Triple("Home", "🏠", "Home"),
-                    Triple("Categories", "▦", "Categories"),
+                    Triple("Browser", "🌐", "Browser"),
                     Triple("Saved", "❤️", "Saved"),
                     Triple("Profile", "👤", "Profile")
                 )
@@ -787,12 +1153,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .clickable {
-                                activeViewMode = mode
-                                if (mode == "Profile") {
-                                    showSettings = true
-                                }
-                            }
+                            .clickable { activeViewMode = mode }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         if (isSelected) {
@@ -864,36 +1225,13 @@ fun MainScreen(viewModel: HomeViewModel) {
             )
         }
 
-        if (showSettings) {
-            SettingsDialog(
-                isCompactMode = isCompactMode,
-                onToggleCompactMode = { viewModel.toggleCompactMode(it) },
-                selectedEngine = defaultSearchEngine,
-                onSelectEngine = { viewModel.selectSearchEngine(it) },
-                onClearHistory = {
-                    viewModel.clearAllHistory()
-                    Toast.makeText(context, "History cleared successfully", Toast.LENGTH_SHORT).show()
-                },
-                onClearFavorites = {
-                    viewModel.clearAllFavorites()
-                    Toast.makeText(context, "Favorites cleared successfully", Toast.LENGTH_SHORT).show()
-                },
-                onDismiss = { showSettings = false }
-            )
-        }
-
         if (showAbout) {
             AboutDialog(
                 onBuyMeCoffee = {
-                    openUrlWithChromeCustomTabs(context, "https://buymeacoffee.com/princelaghari")
+                    activeViewMode = "Profile"
+                    showAbout = false
                 },
                 onDismiss = { showAbout = false }
-            )
-        }
-
-        if (showPrivacyPolicy) {
-            PrivacyPolicyDialog(
-                onDismiss = { showPrivacyPolicy = false }
             )
         }
     }

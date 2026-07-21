@@ -39,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -858,7 +859,8 @@ fun PulsingSearchBox(
     query: String,
     onQueryChanged: (String) -> Unit,
     onExternalSearchClicked: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholderText: String = "Search 1000+ AI tools..."
 ) {
     val focusManager = LocalFocusManager.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -912,7 +914,7 @@ fun PulsingSearchBox(
             Box(modifier = Modifier.weight(1f)) {
                 if (query.isEmpty()) {
                     Text(
-                        text = "Search 1000+ AI tools...",
+                        text = placeholderText,
                         color = TextDimColor,
                         fontSize = 14.sp
                     )
@@ -1225,7 +1227,7 @@ fun VideoAnimation() {
             .background(Brush.linearGradient(listOf(Color(0xFF1F6A5A), Color(0xFF0A2E26)))),
         contentAlignment = Alignment.Center
     ) {
-        androidx.compose.material3.Text(
+        Text(
             text = "▶",
             color = Color(0xFFFFFFFF),
             fontSize = 18.sp,
@@ -1425,6 +1427,135 @@ fun CategoryAnimationPanel(category: String, tags: List<String> = emptyList()) {
     }
 }
 
+/**
+ * Clean, Hardware-Accelerated Browser Result Card matching the exact styling requested.
+ */
+@Composable
+fun BrowserResultCard(
+    tool: AiTool,
+    onCardClicked: (AiTool) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val char = tool.name.firstOrNull()?.toString() ?: "AI"
+    val avatarBrush = remember(tool.id) {
+        when {
+            tool.name.contains("Google") || tool.name.contains("Gemini") -> {
+                Brush.linearGradient(listOf(Color(0xFF4285F4), Color(0xFF34A853), Color(0xFFFBBC05), Color(0xFFEA4335)))
+            }
+            tool.name.contains("Claude") || tool.name.contains("Anthropic") -> {
+                Brush.linearGradient(listOf(Color(0xFFD97757), Color(0xFF8B4A2F)))
+            }
+            tool.name.contains("Midjourney") -> {
+                Brush.linearGradient(listOf(Color(0xFFA855F7), Color(0xFF5B21B6)))
+            }
+            tool.name.contains("DeepSeek") -> {
+                Brush.linearGradient(listOf(Color(0xFF3FF0FF), Color(0xFF8B5CF6)))
+            }
+            else -> {
+                Brush.linearGradient(listOf(AmberAccent, VioletAccent))
+            }
+        }
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = CardColor),
+        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .graphicsLayer {
+                shadowElevation = 4f
+                clip = true
+            }
+            .border(1.dp, Card2Color, RoundedCornerShape(16.dp))
+            .clickable { onCardClicked(tool) }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left Avatar Box with beautiful gradient
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(avatarBrush),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = char,
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Text Info
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = tool.name,
+                        color = TextColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    // Tiny PRO tag
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                brush = Brush.linearGradient(listOf(AmberAccent, Color(0xFFFFE08A))),
+                                shape = RoundedCornerShape(6.dp)
+                            )
+                            .padding(horizontal = 6.dp, vertical = 1.5f.dp)
+                    ) {
+                        Text(
+                            text = "PRO",
+                            color = Color(0xFF241A03),
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+                }
+
+                Text(
+                    text = tool.description,
+                    color = TextDimColor,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            // Right-side Cyan AI badge
+            Box(
+                modifier = Modifier
+                    .background(
+                        brush = Brush.linearGradient(listOf(Color(0xFF3FF0FF), Color(0xFF7EF9FF))),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = "AI",
+                    color = Color(0xFF04262A),
+                    fontSize = 9.5.sp,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun AiToolCard(
     tool: AiTool,
@@ -1434,7 +1565,6 @@ fun AiToolCard(
     modifier: Modifier = Modifier
 ) {
     var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
-    val context = LocalContext.current
 
     val cardPaddingVertical = if (isCompactMode) 4.dp else 8.dp
     val innerPadding = if (isCompactMode) 12.dp else 16.dp
@@ -1449,6 +1579,10 @@ fun AiToolCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = cardPaddingVertical)
+            .graphicsLayer {
+                shadowElevation = 2f
+                clip = true
+            }
             .border(
                 width = 1.dp,
                 color = Card2Color,
@@ -1577,11 +1711,10 @@ fun AiToolCard(
 @Composable
 fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     var hasError by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     // Dynamically trust the exact Ad Unit ID programmatically loaded from strings.xml
     val finalAdUnitId = remember(adUnitId) {
-        adUnitId.ifEmpty { "ca-app-pub-8178045957849630/1752932881" }
+        adUnitId.ifEmpty { "ca-app-pub-3940256099942544/6300978111" }
     }
 
     if (hasError) {
