@@ -1035,6 +1035,397 @@ fun CategoryChips(
  * image loader with fade-in crossfade, action triggers, and subtle entry fade-in animation.
  */
 @Composable
+fun TextChatAnimation() {
+    val transition = rememberInfiniteTransition(label = "textChat")
+
+    @Composable
+    fun AnimatingLine(delayMillis: Int) {
+        val widthFraction by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 0.6f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 2400
+                    0f at delayMillis with EaseInOutSine
+                    0.6f at delayMillis + 1080 with EaseInOutSine
+                    0.6f at delayMillis + 1680 with EaseInOutSine
+                    0f at delayMillis + 2400 with EaseInOutSine
+                },
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "widthFraction"
+        )
+        val opacity by transition.animateFloat(
+            initialValue = 0.3f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 2400
+                    0.3f at delayMillis with EaseInOutSine
+                    1f at delayMillis + 1080 with EaseInOutSine
+                    1f at delayMillis + 1680 with EaseInOutSine
+                    0.3f at delayMillis + 2400 with EaseInOutSine
+                },
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "opacity"
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(widthFraction.coerceAtLeast(0.01f))
+                .height(5.dp)
+                .alpha(opacity)
+                .background(Color.White, RoundedCornerShape(3.dp))
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(Color(0xFF3A2C66), Color(0xFF1A1440)))),
+        verticalArrangement = Arrangement.spacedBy(7.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        AnimatingLine(delayMillis = 0)
+        AnimatingLine(delayMillis = 250)
+        AnimatingLine(delayMillis = 500)
+    }
+}
+
+@Composable
+fun ReasoningAnimation() {
+    val transition = rememberInfiniteTransition(label = "reasoning")
+
+    @Composable
+    fun AnimatingRing(delayMillis: Int) {
+        val ringSize by transition.animateFloat(
+            initialValue = 14f,
+            targetValue = 60f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 2200
+                    14f at delayMillis with EaseOutQuad
+                    60f at delayMillis + 1500 with EaseOutQuad
+                    60f at 2200
+                },
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "ringSize"
+        )
+        val opacity by transition.animateFloat(
+            initialValue = 0.9f,
+            targetValue = 0f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 2200
+                    0.9f at delayMillis with EaseOutQuad
+                    0f at delayMillis + 1500 with EaseOutQuad
+                    0f at 2200
+                },
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "opacity"
+        )
+
+        Box(
+            modifier = Modifier
+                .size(ringSize.dp)
+                .alpha(opacity)
+                .border(2.dp, Color.White, CircleShape)
+        )
+    }
+
+    val coreScale by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(550, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "coreScale"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(Color(0xFF8A5A1F), Color(0xFF3D2408)))),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatingRing(delayMillis = 0)
+        AnimatingRing(delayMillis = 700)
+        AnimatingRing(delayMillis = 1400)
+
+        // Core Dot
+        Box(
+            modifier = Modifier
+                .size(10.dp)
+                .scale(coreScale)
+                .background(Color.White, CircleShape)
+                .border(0.5.dp, Color.White, CircleShape)
+        )
+    }
+}
+
+@Composable
+fun VideoAnimation() {
+    val transition = rememberInfiniteTransition(label = "video")
+
+    val scanOffset by transition.animateFloat(
+        initialValue = 0.15f,
+        targetValue = 0.85f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2400, easing = EaseInOutQuad),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scanOffset"
+    )
+
+    val scanOpacity by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 2400
+                0f at 0
+                0f at 240
+                1f at 240 with EaseInOutQuad
+                1f at 1200 with EaseInOutQuad
+                0f at 1440
+                0f at 2400
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "scanOpacity"
+    )
+
+    val playScale by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "playScale"
+    )
+
+    val playOpacity by transition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "playOpacity"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(Color(0xFF1F6A5A), Color(0xFF0A2E26)))),
+        contentAlignment = Alignment.Center
+    ) {
+        androidx.compose.material3.Text(
+            text = "▶",
+            color = Color(0xFFFFFFFF),
+            fontSize = 18.sp,
+            modifier = Modifier
+                .scale(playScale)
+                .alpha(playOpacity)
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(scanOffset)
+                .wrapContentHeight(Alignment.Bottom)
+                .height(3.dp)
+                .alpha(scanOpacity)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(Color.White, Color.Transparent)
+                    )
+                )
+        )
+    }
+}
+
+@Composable
+fun CodingAnimation() {
+    val transition = rememberInfiniteTransition(label = "coding")
+
+    val bracketY by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = -3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = EaseInOutSine),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "bracketY"
+    )
+
+    val bracketYDelay by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = -3f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 2000
+                0f at 0 with EaseInOutSine
+                -3f at 1000 with EaseInOutSine
+                0f at 2000
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "bracketYDelay"
+    )
+
+    val cursorOpacity by transition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = keyframes {
+                durationMillis = 1000
+                1f at 0
+                1f at 499
+                0f at 500
+                0f at 1000
+            },
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "cursorOpacity"
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(Color(0xFF1F5A52), Color(0xFF0A2622)))),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "<",
+            color = Color.White.copy(alpha = 0.8f),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 20.sp,
+            modifier = Modifier.offset(y = bracketY.dp)
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        Box(
+            modifier = Modifier
+                .width(2.dp)
+                .height(18.dp)
+                .alpha(cursorOpacity)
+                .background(Color.White)
+        )
+        Spacer(modifier = Modifier.width(2.dp))
+        Text(
+            text = "/>",
+            color = Color.White.copy(alpha = 0.8f),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 20.sp,
+            modifier = Modifier.offset(y = bracketYDelay.dp)
+        )
+    }
+}
+
+@Composable
+fun ImageGenAnimation() {
+    val transition = rememberInfiniteTransition(label = "imageGen")
+
+    @Composable
+    fun AnimatingSparkle(delayFraction: Float, startXPercent: Float, bottomPercent: Float) {
+        val animProgress by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = keyframes {
+                    durationMillis = 3000
+                    0f at 0 with EaseInOutSine
+                    1f at 3000
+                },
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "animProgress"
+        )
+
+        val actualProgress = remember(animProgress) {
+            (animProgress + delayFraction) % 1.0f
+        }
+
+        val floatY = actualProgress * -55f
+        val scale = 1f - (actualProgress * 0.6f)
+        val opacity = if (actualProgress < 0.2f) {
+            actualProgress / 0.2f
+        } else {
+            1f - ((actualProgress - 0.2f) / 0.8f)
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.BottomStart)
+                .offset(
+                    x = (96 * startXPercent).dp,
+                    y = (-110 * bottomPercent + floatY).dp
+                )
+                .size(4.dp)
+                .scale(scale)
+                .alpha(opacity)
+                .background(Color.White, CircleShape)
+        )
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(Color(0xFF7A3FB0), Color(0xFF331966)))),
+        contentAlignment = Alignment.BottomStart
+    ) {
+        AnimatingSparkle(delayFraction = 0f, startXPercent = 0.30f, bottomPercent = 0.10f)
+        AnimatingSparkle(delayFraction = 0.26f, startXPercent = 0.55f, bottomPercent = 0.20f)
+        AnimatingSparkle(delayFraction = 0.53f, startXPercent = 0.70f, bottomPercent = 0.05f)
+        AnimatingSparkle(delayFraction = 0.73f, startXPercent = 0.45f, bottomPercent = 0.35f)
+    }
+}
+
+@Composable
+fun GenericSparkleAnimation() {
+    ImageGenAnimation()
+}
+
+@Composable
+fun CategoryAnimationPanel(category: String, tags: List<String> = emptyList()) {
+    val normCategory = category.lowercase().trim()
+    val normTags = tags.map { it.lowercase().trim() }
+
+    when {
+        normCategory.contains("text") || normCategory.contains("research") || normCategory.contains("chat") ||
+        normTags.any { it.contains("chat") || it.contains("text") || it.contains("research") || it.contains("writing") } -> {
+            TextChatAnimation()
+        }
+        normCategory.contains("reasoning") || normCategory.contains("intellect") ||
+        normTags.any { it.contains("reasoning") || it.contains("thinking") } -> {
+            ReasoningAnimation()
+        }
+        normCategory.contains("video") || normCategory.contains("motion") ||
+        normTags.any { it.contains("video") || it.contains("motion") || it.contains("cinema") } -> {
+            VideoAnimation()
+        }
+        normCategory.contains("code") || normCategory.contains("coding") || normCategory.contains("developer") ||
+        normTags.any { it.contains("code") || it.contains("coding") || it.contains("programming") || it.contains("developer") } -> {
+            CodingAnimation()
+        }
+        normCategory.contains("image") || normCategory.contains("design") || normCategory.contains("art") ||
+        normTags.any { it.contains("image") || it.contains("design") || it.contains("art") || it.contains("illustration") || it.contains("creative") } -> {
+            ImageGenAnimation()
+        }
+        else -> {
+            GenericSparkleAnimation()
+        }
+    }
+}
+
+@Composable
 fun AiToolCard(
     tool: AiTool,
     onCardClicked: (AiTool) -> Unit,
@@ -1047,17 +1438,8 @@ fun AiToolCard(
 
     val cardPaddingVertical = if (isCompactMode) 4.dp else 8.dp
     val innerPadding = if (isCompactMode) 12.dp else 16.dp
-    val logoSize = if (isCompactMode) 44 else 60
-    val titleFontSize = if (isCompactMode) 13.5.sp else 15.sp
+    val logoSize = if (isCompactMode) 30 else 32
     val descMaxLines = if (isCompactMode) 1 else 2
-
-    val imageRequest = remember(tool.imageUrl) {
-        ImageRequest.Builder(context)
-            .data(tool.imageUrl)
-            .crossfade(true)
-            .crossfade(300)
-            .build()
-    }
 
     Card(
         colors = CardDefaults.cardColors(
@@ -1077,79 +1459,110 @@ fun AiToolCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(innerPadding),
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(logoSize.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, AmberAccent.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (!isImageError && tool.imageUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = imageRequest,
-                        contentDescription = "${tool.name} logo",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                        onError = { isImageError = true }
-                    )
-                } else {
-                    Premium3DLogo(size = logoSize)
-                }
-            }
-
-            Spacer(modifier = Modifier.width(innerPadding))
-
+            // Left Content Panel
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(innerPadding)
             ) {
+                // Top Row: Icon, Title, and Category Tag
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Box(
+                        modifier = Modifier
+                            .size(logoSize.dp)
+                            .clip(RoundedCornerShape(9.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(
+                                        AmberAccent,
+                                        VioletAccent
+                                    )
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = tool.name.take(1),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold
+                        )
+                    }
+
                     HighlightedText(
                         text = tool.name,
                         query = searchQuery,
                         style = TextStyle(
                             color = TextColor,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = titleFontSize
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 14.5.sp
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f).padding(end = 6.dp)
+                        modifier = Modifier.weight(1f)
                     )
+
                     Box(
                         modifier = Modifier
-                            .background(AmberAccent.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                            .border(0.5.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .background(AmberAccent.copy(alpha = 0.14f), RoundedCornerShape(10.dp))
                             .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
                             text = tool.category,
                             color = AmberAccent,
-                            fontSize = 10.sp,
+                            fontSize = 9.5.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
+                // Golden Stars Rating Row
+                val ratingScore = remember(tool.id) {
+                    val code = tool.id.hashCode() % 10
+                    val base = 4.0 + (code / 10.0)
+                    String.format("%.1f", base)
+                }
+                Text(
+                    text = "★★★★★ $ratingScore",
+                    color = AmberAccent,
+                    fontSize = 11.sp,
+                    letterSpacing = 1.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // Tool Description
                 HighlightedText(
                     text = tool.description,
                     query = searchQuery,
                     style = TextStyle(
                         color = TextDimColor,
-                        fontSize = 11.5.sp,
+                        fontSize = 11.sp,
                         lineHeight = 15.sp
                     ),
                     maxLines = descMaxLines,
                     overflow = TextOverflow.Ellipsis
                 )
+            }
+
+            // Right side 96px animated photo panel
+            Box(
+                modifier = Modifier
+                    .width(96.dp)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 20.dp, bottomEnd = 20.dp))
+            ) {
+                CategoryAnimationPanel(category = tool.category, tags = tool.tags)
             }
         }
     }
