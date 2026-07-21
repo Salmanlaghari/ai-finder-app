@@ -6,6 +6,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.princelaghari.ailatestfinder.domain.model.AiTool
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -196,80 +198,60 @@ class HomeViewModel @Inject constructor(
     )
 
     /**
-     * Combines browserSearchQuery and aiTools dataset to filter strictly AI-related platforms.
+     * Combines browserSearchQuery and performs a live, asynchronous internet search.
+     * Emits search loading states, live parsed DuckDuckGo Lite results, or falls back to Room offline matching.
      */
-    val browserResults: StateFlow<List<AiTool>> = combine(
-        _browserSearchQuery,
-        aiTools
-    ) { query, tools ->
-        val trimmed = query.trim().lowercase()
-        if (trimmed.isEmpty()) {
-            // Default curated premium results shown initially
-            listOf(
-                AiTool(
-                    id = "b-gemini", name = "Google Gemini 3", category = "Text AI",
-                    description = "Official announcement, multi-modal features & documentation.",
-                    imageUrl = "", toolUrl = "https://gemini.google.com", pricing = "Free",
-                    platforms = listOf("Web"), developer = "Google", company = "Google",
-                    status = "Trending", launchYear = "2024", tags = listOf("google", "gemini"),
-                    alternatives = emptyList()
-                ),
-                AiTool(
-                    id = "b-claude", name = "Claude Opus 4.8", category = "Text AI",
-                    description = "Anthropic core model card, advanced reasoning benchmarks & system cards.",
-                    imageUrl = "", toolUrl = "https://claude.ai", pricing = "Free",
-                    platforms = listOf("Web"), developer = "Anthropic", company = "Anthropic",
-                    status = "Trending", launchYear = "2024", tags = listOf("anthropic", "claude"),
-                    alternatives = emptyList()
-                ),
-                AiTool(
-                    id = "b-midjourney", name = "Midjourney v7", category = "Image AI",
-                    description = "New style reference guide, prompt formats, and visual parameter tuning.",
-                    imageUrl = "", toolUrl = "https://midjourney.com", pricing = "Paid",
-                    platforms = listOf("Web"), developer = "Midjourney Lab", company = "Midjourney",
-                    status = "Trending", launchYear = "2024", tags = listOf("midjourney", "art"),
-                    alternatives = emptyList()
-                ),
-                AiTool(
-                    id = "b-deepseek", name = "DeepSeek R1", category = "Text AI",
-                    description = "Reasoning-focused open weights model deployment and API guides.",
-                    imageUrl = "", toolUrl = "https://deepseek.com", pricing = "Free",
-                    platforms = listOf("Web"), developer = "DeepSeek", company = "DeepSeek",
-                    status = "Trending", launchYear = "2025", tags = listOf("deepseek", "r1"),
-                    alternatives = emptyList()
-                ),
-                AiTool(
-                    id = "b-sora", name = "OpenAI Sora v2", category = "Video AI",
-                    description = "Cinematic high-fidelity video generation documentation and prompts.",
-                    imageUrl = "", toolUrl = "https://openai.com/sora", pricing = "Paid",
-                    platforms = listOf("Web"), developer = "OpenAI", company = "OpenAI",
-                    status = "Trending", launchYear = "2024", tags = listOf("openai", "sora"),
-                    alternatives = emptyList()
-                ),
-                AiTool(
-                    id = "b-suno", name = "Suno AI Music v4", category = "Music AI",
-                    description = "High-fidelity generation guides, custom prompt lyrics and audio presets.",
-                    imageUrl = "", toolUrl = "https://suno.com", pricing = "Free",
-                    platforms = listOf("Web"), developer = "Suno", company = "Suno",
-                    status = "Trending", launchYear = "2024", tags = listOf("suno", "music"),
-                    alternatives = emptyList()
-                )
-            )
-        } else {
-            // Apply filtering logic to find matching AI tools / models / docs from the global 1,020 dataset
-            tools.filter { tool ->
-                tool.name.lowercase().contains(trimmed) ||
-                tool.description.lowercase().contains(trimmed) ||
-                tool.category.lowercase().contains(trimmed) ||
-                tool.tags.any { it.lowercase().contains(trimmed) }
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    val browserResults: StateFlow<List<AiTool>> = _browserSearchQuery
+        .debounce(450)
+        .flatMapLatest { query ->
+            flow {
+                val trimmed = query.trim()
+                if (trimmed.isEmpty()) {
+                    emit(getCuratedBrowserDefaults())
+                } else {
+                    // Emit temporary loading indicator card
+                    emit(
+                        listOf(
+                            AiTool(
+                                id = "b-loading",
+                                name = "Searching Live Web...",
+                                category = "Web Search",
+                                description = "Connecting to global network search indexes to pull live AI model news & tools...",
+                                imageUrl = "",
+                                toolUrl = "",
+                                pricing = "Free",
+                                platforms = listOf("Web"),
+                                developer = "Live Search Agent",
+                                company = "Internet",
+                                status = "Verified",
+                                launchYear = "2025",
+                                tags = listOf("loading"),
+                                alternatives = emptyList()
+                            )
+                        )
+                    )
+
+                    // Execute Network query on Dispatchers.IO background thread
+                    val liveResults = performLiveWebSearch(trimmed)
+                    if (liveResults.isEmpty()) {
+                        // Resilient Fallback to offline local search tool matching
+                        val localFallback = aiTools.value.filter { tool ->
+                            tool.name.lowercase().contains(trimmed.lowercase()) ||
+                            tool.description.lowercase().contains(trimmed.lowercase())
+                        }
+                        emit(localFallback)
+                    } else {
+                        emit(liveResults)
+                    }
+                }
             }
-        }
-    }.flowOn(Dispatchers.Default)
-    .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+        }.flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = getCuratedBrowserDefaults()
+        )
 
     fun onSearchQueryChanged(newQuery: String) {
         _searchQuery.value = newQuery
@@ -368,5 +350,175 @@ class HomeViewModel @Inject constructor(
         } catch (e: Exception) {
             // Safe ignore
         }
+    }
+
+    /**
+     * Executes an asynchronous live HTML web search parsing DuckDuckGo HTML results,
+     * and filters results to strictly target AI models, tools, news, and official docs.
+     */
+    private fun performLiveWebSearch(query: String): List<AiTool> {
+        val results = mutableListOf<AiTool>()
+        try {
+            // Force AI relevance in keywords to constrain search output parameters
+            val targetQuery = Uri.encode("$query ai tools models news")
+            val url = java.net.URL("https://html.duckduckgo.com/html/?q=$targetQuery")
+            val conn = url.openConnection() as java.net.HttpURLConnection
+            conn.requestMethod = "GET"
+            conn.setRequestProperty(
+                "User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+            conn.connectTimeout = 7000
+            conn.readTimeout = 7000
+
+            val html = conn.inputStream.bufferedReader().use { it.readText() }
+
+            // Match hyperlinks and snippets: <a class="result__a" href="...">Title</a>
+            val titleRegex = """class="result__a"\s+href="([^"]+)"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+            val snippetRegex = """class="result__snippet"[^>]*>(.*?)</a>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+
+            val titleMatches = titleRegex.findAll(html).toList()
+            val snippetMatches = snippetRegex.findAll(html).toList()
+
+            val count = minOf(titleMatches.size, 15)
+            for (i in 0 until count) {
+                val titleMatch = titleMatches[i]
+                val rawLink = titleMatch.groupValues[1]
+                val decodedLink = extractRealUrl(rawLink)
+
+                // Skip looping web result page redirections
+                if (decodedLink.contains("duckduckgo.com") && !decodedLink.contains("uddg=")) continue
+
+                // Clean title elements
+                val cleanTitle = titleMatch.groupValues[2]
+                    .replace("<[^>]*>".toRegex(), "")
+                    .replace("&amp;", "&")
+                    .replace("&quot;", "\"")
+                    .replace("&#x27;", "'")
+                    .replace("&lt;", "<")
+                    .replace("&gt;", ">")
+                    .trim()
+
+                // Clean snippet elements
+                var cleanSnippet = if (i < snippetMatches.size) {
+                    snippetMatches[i].groupValues[1]
+                        .replace("<[^>]*>".toRegex(), "")
+                        .replace("&amp;", "&")
+                        .replace("&quot;", "\"")
+                        .replace("&#x27;", "'")
+                        .replace("&lt;", "<")
+                        .replace("&gt;", ">")
+                        .trim()
+                } else {
+                    "Visit official portal for latest model news."
+                }
+                if (cleanSnippet.isEmpty()) {
+                    cleanSnippet = "Visit official portal for latest model news."
+                }
+
+                // Strictly filter for AI relevancy
+                val aiKeywords = listOf("ai", "model", "tool", "news", "learn", "neural", "intelligence", "gpt", "claude", "sora", "deepseek", "midjourney", "music", "audio", "video", "generator", "copilot", "developer", "design", "tech", "github")
+                val isAiRelevant = aiKeywords.any { kw ->
+                    cleanTitle.lowercase().contains(kw) || cleanSnippet.lowercase().contains(kw) || decodedLink.lowercase().contains(kw)
+                }
+
+                if (isAiRelevant) {
+                    results.add(
+                        AiTool(
+                            id = "web-$i-${cleanTitle.hashCode()}",
+                            name = cleanTitle,
+                            category = "Web Search",
+                            description = cleanSnippet,
+                            imageUrl = "",
+                            toolUrl = decodedLink,
+                            pricing = "Free",
+                            platforms = listOf("Web"),
+                            developer = "Verified AI Agent",
+                            company = "Internet",
+                            status = "Verified",
+                            launchYear = "2025",
+                            tags = listOf("live", "ai-verified", "web"),
+                            alternatives = emptyList()
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("HomeViewModel", "Live search operation failed", e)
+        }
+        return results
+    }
+
+    /**
+     * Decodes the target redirected url param from internal DuckDuckGo redirects.
+     */
+    private fun extractRealUrl(rawUrl: String): String {
+        if (rawUrl.contains("uddg=")) {
+            val index = rawUrl.indexOf("uddg=")
+            val end = rawUrl.indexOf("&", index)
+            val extracted = if (end != -1) rawUrl.substring(index + 5, end) else rawUrl.substring(index + 5)
+            return try {
+                Uri.decode(extracted)
+            } catch (e: Exception) {
+                rawUrl
+            }
+        }
+        return rawUrl
+    }
+
+    /**
+     * Standard pre-loaded trending defaults shown on the Browser feed initially.
+     */
+    private fun getCuratedBrowserDefaults(): List<AiTool> {
+        return listOf(
+            AiTool(
+                id = "b-gemini", name = "Google Gemini 3", category = "Text AI",
+                description = "Official announcement, multi-modal features & documentation.",
+                imageUrl = "", toolUrl = "https://gemini.google.com", pricing = "Free",
+                platforms = listOf("Web"), developer = "Google", company = "Google",
+                status = "Trending", launchYear = "2024", tags = listOf("google", "gemini"),
+                alternatives = emptyList()
+            ),
+            AiTool(
+                id = "b-claude", name = "Claude Opus 4.8", category = "Text AI",
+                description = "Anthropic core model card, advanced reasoning benchmarks & system cards.",
+                imageUrl = "", toolUrl = "https://claude.ai", pricing = "Free",
+                platforms = listOf("Web"), developer = "Anthropic", company = "Anthropic",
+                status = "Trending", launchYear = "2024", tags = listOf("anthropic", "claude"),
+                alternatives = emptyList()
+            ),
+            AiTool(
+                id = "b-midjourney", name = "Midjourney v7", category = "Image AI",
+                description = "New style reference guide, prompt formats, and visual parameter tuning.",
+                imageUrl = "", toolUrl = "https://midjourney.com", pricing = "Paid",
+                platforms = listOf("Web"), developer = "Midjourney Lab", company = "Midjourney",
+                status = "Trending", launchYear = "2024", tags = listOf("midjourney", "art"),
+                alternatives = emptyList()
+            ),
+            AiTool(
+                id = "b-deepseek", name = "DeepSeek R1", category = "Text AI",
+                description = "Reasoning-focused open weights model deployment and API guides.",
+                imageUrl = "", toolUrl = "https://deepseek.com", pricing = "Free",
+                platforms = listOf("Web"), developer = "DeepSeek", company = "DeepSeek",
+                status = "Trending", launchYear = "2025", tags = listOf("deepseek", "r1"),
+                alternatives = emptyList()
+            ),
+            AiTool(
+                id = "b-sora", name = "OpenAI Sora v2", category = "Video AI",
+                description = "Cinematic high-fidelity video generation documentation and prompts.",
+                imageUrl = "", toolUrl = "https://openai.com/sora", pricing = "Paid",
+                platforms = listOf("Web"), developer = "OpenAI", company = "OpenAI",
+                status = "Trending", launchYear = "2024", tags = listOf("openai", "sora"),
+                alternatives = emptyList()
+            ),
+            AiTool(
+                id = "b-suno", name = "Suno AI Music v4", category = "Music AI",
+                description = "High-fidelity generation guides, custom prompt lyrics and audio presets.",
+                imageUrl = "", toolUrl = "https://suno.com", pricing = "Free",
+                platforms = listOf("Web"), developer = "Suno", company = "Suno",
+                status = "Trending", launchYear = "2024", tags = listOf("suno", "music"),
+                alternatives = emptyList()
+            )
+        )
     }
 }

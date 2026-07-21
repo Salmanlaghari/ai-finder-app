@@ -125,6 +125,10 @@ fun MainScreen(viewModel: HomeViewModel) {
     // Bottom Navigation View Mode: Home, Browser, Saved, Profile
     var activeViewMode by remember { mutableStateOf("Home") }
 
+    // Dynamic Navigation Transitions
+    var showExplorerList by remember { mutableStateOf(false) }
+    var explorerListHeader by remember { mutableStateOf("AI Tools Explorer") }
+
     // Dialog state controllers
     var selectedToolForDetail by remember { mutableStateOf<AiTool?>(null) }
     var activeBrowserUrl by remember { mutableStateOf<String?>(null) }
@@ -165,7 +169,8 @@ fun MainScreen(viewModel: HomeViewModel) {
         ) {
             when (activeViewMode) {
                 "Home" -> {
-                    if (searchQuery.isEmpty()) {
+                    // Check if user clicked See All, category chips, or typed a query to show Full List explorer
+                    if (!showExplorerList && searchQuery.isEmpty()) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -316,7 +321,11 @@ fun MainScreen(viewModel: HomeViewModel) {
                             ) {
                                 CategoryChips(
                                     selectedCategory = selectedCategory,
-                                    onCategorySelected = { viewModel.onCategorySelected(it) }
+                                    onCategorySelected = { category ->
+                                        viewModel.onCategorySelected(category)
+                                        explorerListHeader = if (category == "All") "AI Tools Explorer" else "$category Directory"
+                                        showExplorerList = true
+                                    }
                                 )
                             }
 
@@ -346,7 +355,14 @@ fun MainScreen(viewModel: HomeViewModel) {
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = AmberAccent,
-                                        modifier = Modifier.clickable { activeViewMode = "Browser" }
+                                        modifier = Modifier
+                                            .clickable {
+                                                viewModel.onCategorySelected("All")
+                                                viewModel.onSortOptionSelected("Trending")
+                                                explorerListHeader = "Featured This Week"
+                                                showExplorerList = true
+                                            }
+                                            .padding(8.dp)
                                     )
                                 }
 
@@ -446,7 +462,14 @@ fun MainScreen(viewModel: HomeViewModel) {
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = AmberAccent,
-                                        modifier = Modifier.clickable { activeViewMode = "Browser" }
+                                        modifier = Modifier
+                                            .clickable {
+                                                viewModel.onCategorySelected("All")
+                                                viewModel.onSortOptionSelected("Popular")
+                                                explorerListHeader = "Top Rated Tools"
+                                                showExplorerList = true
+                                            }
+                                            .padding(8.dp)
                                     )
                                 }
 
@@ -553,22 +576,48 @@ fun MainScreen(viewModel: HomeViewModel) {
                             )
                         }
                     } else {
-                        // Main feed query results
+                        // FULL LIST EXPLORER WITH BACK NAVIGATION
                         Column(modifier = Modifier.fillMaxSize()) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 22.dp)
                                     .padding(top = 26.dp, bottom = 10.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                // Beautiful Golden Back Button
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(CardColor)
+                                        .border(1.dp, AmberAccent.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                                        .clickable {
+                                            showExplorerList = false
+                                            viewModel.onSearchQueryChanged("")
+                                            viewModel.onCategorySelected("All")
+                                            viewModel.onSortOptionSelected("Popular")
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "←",
+                                        color = AmberAccent,
+                                        fontSize = 18.sp,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
                                 Text(
-                                    text = "Search Matches",
-                                    fontSize = 20.sp,
+                                    text = if (searchQuery.isNotEmpty()) "Search Matches" else explorerListHeader,
+                                    fontSize = 19.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TextColor
+                                    color = TextColor,
+                                    modifier = Modifier.weight(1f)
                                 )
+
                                 Text(
                                     text = "Sort: $selectedSortOption",
                                     fontSize = 11.5.sp,
@@ -645,7 +694,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 itemsIndexed(
                                     items = aiTools,
                                     key = { _, tool -> tool.id }
-                                ) { index, tool ->
+                                ) { _, tool ->
                                     AiToolCard(
                                         tool = tool,
                                         searchQuery = searchQuery,
@@ -753,7 +802,9 @@ fun MainScreen(viewModel: HomeViewModel) {
                                     BrowserResultCard(
                                         tool = tool,
                                         onCardClicked = { clicked ->
-                                            activeBrowserUrl = clicked.toolUrl
+                                            if (clicked.toolUrl.isNotEmpty()) {
+                                                activeBrowserUrl = clicked.toolUrl
+                                            }
                                         }
                                     )
                                 }
@@ -1153,7 +1204,13 @@ fun MainScreen(viewModel: HomeViewModel) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .clickable { activeViewMode = mode }
+                            .clickable {
+                                activeViewMode = mode
+                                // Reset explorer navigation states when switching top-level destinations
+                                if (mode != "Home") {
+                                    showExplorerList = false
+                                }
+                            }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         if (isSelected) {

@@ -468,9 +468,8 @@ fun ExternalSearchDialog(
 }
 
 /**
- * A highly polished, 3D-styled Metallic Gold Application Emblem.
- * Created using layered gradients, beveled concentric rings, and soft outer/inner drop shadows
- * to render a beautiful 3D shape application icon.
+ * A highly polished, 3D-styled cyber-themed AI Emblem.
+ * Designed with layered neon-cyan and glowing violet gradients to render an elite premium finish.
  */
 @Composable
 fun Premium3DLogo(
@@ -494,14 +493,14 @@ fun Premium3DLogo(
             .scale(pulseScale),
         contentAlignment = Alignment.Center
     ) {
-        // Shadow/Glow layer 1 (Outer Deep Shadow & Glow)
+        // Shadow/Glow layer 1 (Outer Deep Cyber Glow)
         Box(
             modifier = Modifier
                 .size((size * 0.95).dp)
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AmberAccent.copy(alpha = 0.25f),
+                            Color(0xFF3FF0FF).copy(alpha = 0.25f),
                             Color.Transparent
                         )
                     ),
@@ -509,17 +508,17 @@ fun Premium3DLogo(
                 )
         )
 
-        // Beveled Outer Gold Ring (Layer 2) - Gives thickness and 3D depth
+        // Beveled Outer Cyan/Purple Ring (Layer 2) - Gives thickness and 3D depth
         Box(
             modifier = Modifier
                 .size((size * 0.9).dp)
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFF8A7322), // Deep brass/bronze
-                            Color(0xFFFFF6D1), // Bright Highlight
-                            AmberAccent,       // Amber/Gold
-                            Color(0xFF5C4A13)  // Dark shadow bevel
+                            Color(0xFF1E1035), // Deep purple
+                            Color(0xFFE9D5FF), // Bright Highlight
+                            Color(0xFF3FF0FF), // Cyber Cyan
+                            Color(0xFF0F3238)  // Deep shadow cyan
                         ),
                         start = Offset(0f, 0f),
                         end = Offset(100f, 100f)
@@ -528,7 +527,7 @@ fun Premium3DLogo(
                 )
                 .border(
                     width = 1.5.dp,
-                    color = Color(0xFFFFF6D1).copy(alpha = 0.8f),
+                    color = Color(0xFFE9D5FF).copy(alpha = 0.8f),
                     shape = CircleShape
                 )
         )
@@ -548,20 +547,20 @@ fun Premium3DLogo(
                 )
                 .border(
                     width = 1.dp,
-                    color = AmberAccent.copy(alpha = 0.3f),
+                    color = Color(0xFF3FF0FF).copy(alpha = 0.3f),
                     shape = CircleShape
                 )
         )
 
-        // Concentric Inner Gold Bevel (Layer 4)
+        // Concentric Inner Tech Bevel (Layer 4)
         Box(
             modifier = Modifier
                 .size((size * 0.64).dp)
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFFFFF6D1).copy(alpha = 0.1f),
-                            Color(0xFF5C4A13).copy(alpha = 0.6f)
+                            Color(0xFFE9D5FF).copy(alpha = 0.1f),
+                            Color(0xFF0F3238).copy(alpha = 0.6f)
                         )
                     ),
                     shape = CircleShape
@@ -570,9 +569,9 @@ fun Premium3DLogo(
                     width = 1.dp,
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            AmberAccent,
-                            Color(0xFFFFF6D1),
-                            Color(0xFF5C4A13)
+                            Color(0xFF3FF0FF),
+                            Color(0xFFE9D5FF),
+                            Color(0xFF1E1035)
                         )
                     ),
                     shape = CircleShape
@@ -589,9 +588,9 @@ fun Premium3DLogo(
                 style = TextStyle(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color(0xFFFFF6D1), // Bright highlight at top
-                            AmberAccent,       // Solid Amber Gold
-                            Color(0xFF9E7E1D)  // Deep shadow at bottom
+                            Color(0xFFE9D5FF), // Bright highlight at top
+                            Color(0xFF3FF0FF), // Solid Cyber Cyan
+                            Color(0xFF5B21B6)  // Deep shadow purple
                         )
                     ),
                     fontSize = (size * 0.26).sp,
@@ -603,7 +602,7 @@ fun Premium3DLogo(
             Text(
                 text = "FINDER",
                 style = TextStyle(
-                    color = Color(0xFFFFF6D1).copy(alpha = 0.7f),
+                    color = Color(0xFF3FF0FF).copy(alpha = 0.7f),
                     fontSize = (size * 0.08).sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp
@@ -1564,8 +1563,6 @@ fun AiToolCard(
     isCompactMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    var isImageError by remember(tool.imageUrl) { mutableStateOf(false) }
-
     val cardPaddingVertical = if (isCompactMode) 4.dp else 8.dp
     val innerPadding = if (isCompactMode) 12.dp else 16.dp
     val logoSize = if (isCompactMode) 30 else 32
