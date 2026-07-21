@@ -23,12 +23,7 @@ class AdManager @Inject constructor() {
     private val TAG = "AdManager"
     private val isInitialized = AtomicBoolean(false)
 
-    // Ad Units (Utilizing Google standard Test IDs during development dynamically).
-    private val testPrefix = "ca-app-pub-" + "3940256" + "099942544"
-    private val TEST_BANNER_ID = "$testPrefix/6300978111"
-    private val TEST_INTERSTITIAL_ID = "$testPrefix/1033173712"
-    private val TEST_REWARDED_ID = "$testPrefix/5224354917"
-
+    // Fallback real Production IDs if resources fail to fetch
     private var bannerId: String = "ca-app-pub-8178045957849630/1752932881"
     private var interstitialId: String = "ca-app-pub-8178045957849630/5137075902"
     private var rewardedId: String = "ca-app-pub-8178045957849630/8992414643"
@@ -47,41 +42,38 @@ class AdManager @Inject constructor() {
     private val MAX_RETRY_ATTEMPTS = 5
 
     /**
-     * Initializes the Google Mobile Ads SDK on a background thread.
+     * Initializes the Google Mobile Ads SDK and dynamically loads the real Ad Unit IDs from strings.xml
      */
     fun initialize(context: Context) {
         val appContext = context.applicationContext
-        val isDebug = (appContext.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
-        if (isDebug) {
-            Log.d(TAG, "AdManager: Running in DEBUG mode. Forcing Google standard Test Ad Unit IDs.")
-            bannerId = TEST_BANNER_ID
-            interstitialId = TEST_INTERSTITIAL_ID
-            rewardedId = TEST_REWARDED_ID
-        } else {
-            Log.d(TAG, "AdManager: Running in RELEASE mode. Securely loading Real Production Ad Unit IDs.")
-            try {
-                val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
-                bannerId = if (bId.isNotEmpty() && !bId.contains("3940256")) bId else "ca-app-pub-8178045957849630/1752932881"
-
-                val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
-                interstitialId = if (iId.isNotEmpty() && !iId.contains("3940256")) iId else "ca-app-pub-8178045957849630/5137075902"
-
-                val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
-                rewardedId = if (rId.isNotEmpty() && !rId.contains("3940256")) rId else "ca-app-pub-8178045957849630/8992414643"
-            } catch (e: Exception) {
-                bannerId = "ca-app-pub-8178045957849630/1752932881"
-                interstitialId = "ca-app-pub-8178045957849630/5137075902"
-                rewardedId = "ca-app-pub-8178045957849630/8992414643"
+        // Programmatically bind and load real verified Ad Unit IDs directly from strings.xml
+        try {
+            val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
+            if (bId.isNotEmpty()) {
+                bannerId = bId
             }
+            val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
+            if (iId.isNotEmpty()) {
+                interstitialId = iId
+            }
+            val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
+            if (rId.isNotEmpty()) {
+                rewardedId = rId
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to resolve production Ad Unit IDs from strings.xml", e)
         }
+
+        Log.d(TAG, "AdManager: Configured Banner Ad Unit: $bannerId")
+        Log.d(TAG, "AdManager: Configured Interstitial Ad Unit: $interstitialId")
+        Log.d(TAG, "AdManager: Configured Rewarded Ad Unit: $rewardedId")
 
         if (isInitialized.compareAndSet(false, true)) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     MobileAds.initialize(context) {
-                        Log.d(TAG, "AdMob SDK Initialized Successfully.")
-                        // Preload Interstitial and Rewarded ads immediately after initialization
+                        Log.d(TAG, "AdMob SDK Initialized Successfully with real configurations.")
                         preloadInterstitial(context)
                         preloadRewarded(context)
                     }

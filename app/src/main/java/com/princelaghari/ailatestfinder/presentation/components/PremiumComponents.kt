@@ -1165,20 +1165,10 @@ fun AiToolCard(
 fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
     var hasError by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val isDebug = remember(context) { (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
 
-    val finalAdUnitId = remember(adUnitId, isDebug) {
-        if (isDebug) {
-            val testPrefix = "ca-app-pub-" + "3940256099942544"
-            adUnitId.ifEmpty { "$testPrefix/6300978111" }
-        } else {
-            val forbiddenLiteral = "3940256" + "099942544"
-            if (adUnitId.isEmpty() || adUnitId.contains(forbiddenLiteral)) {
-                "ca-app-pub-8178045957849630/1752932881"
-            } else {
-                adUnitId
-            }
-        }
+    // Dynamically trust the exact Ad Unit ID programmatically loaded from strings.xml
+    val finalAdUnitId = remember(adUnitId) {
+        adUnitId.ifEmpty { "ca-app-pub-8178045957849630/1752932881" }
     }
 
     if (hasError) {
