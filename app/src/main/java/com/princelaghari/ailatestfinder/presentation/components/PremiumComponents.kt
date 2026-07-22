@@ -226,6 +226,8 @@ fun AboutDialog(
     onBuyMeCoffee: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Dialog(onDismissRequest = onDismiss) {
         Card(
             colors = CardDefaults.cardColors(containerColor = CardColor),
@@ -267,16 +269,16 @@ fun AboutDialog(
                     textAlign = TextAlign.Center,
                     lineHeight = 18.sp
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Admin & Owner: Prince Laghari\nTech: Jetpack Compose, MVVM, Room, Firestore, AdMob",
+                    text = "Developer & Creator: Prince Laghari\nContact: laghariprince2@gmail.com\nTech: Jetpack Compose, MVVM, Room, Firestore, AdMob",
                     fontSize = 11.sp,
                     color = VioletAccent,
                     textAlign = TextAlign.Center,
                     lineHeight = 16.sp
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // Buy Me Coffee widget
                 Button(
@@ -286,6 +288,72 @@ fun AboutDialog(
                     modifier = Modifier.fillMaxWidth(0.9f)
                 ) {
                     Text(text = "☕ Buy Me a Coffee", color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Side-by-side Workable Contact & Feedback options targeting creator directly
+                Row(
+                    modifier = Modifier.fillMaxWidth(0.95f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Help Us Improve (Email intent)
+                    Button(
+                        onClick = {
+                            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:")
+                                putExtra(Intent.EXTRA_EMAIL, arrayOf("laghariprince2@gmail.com"))
+                                putExtra(Intent.EXTRA_SUBJECT, "Help us to improve - Ai Latest Finder")
+                                putExtra(Intent.EXTRA_TEXT, "Hi Prince Laghari,\n\nI want to suggest the following improvements to make Ai Latest Finder even better:\n\n\n\nBest regards,\n[Your Name]")
+                            }
+                            try {
+                                context.startActivity(Intent.createChooser(emailIntent, "Send feedback via"))
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "No email client found on your device.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(0.5.dp, AmberAccent.copy(alpha = 0.4f), RoundedCornerShape(10.dp)),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "🚀", fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(text = "Help Improve", color = AmberAccent, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                        }
+                    }
+
+                    // Contact Us (Email intent)
+                    Button(
+                        onClick = {
+                            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:")
+                                putExtra(Intent.EXTRA_EMAIL, arrayOf("laghariprince2@gmail.com"))
+                                putExtra(Intent.EXTRA_SUBJECT, "Contact Us - Ai Latest Finder")
+                                putExtra(Intent.EXTRA_TEXT, "Hi Prince Laghari,\n\n[Write your message here]\n\nBest regards,\n[Your Name]")
+                            }
+                            try {
+                                context.startActivity(Intent.createChooser(emailIntent, "Contact Prince via"))
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "No email client found on your device.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Card2Color),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(0.5.dp, VioletAccent.copy(alpha = 0.4f), RoundedCornerShape(10.dp)),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(text = "📧", fontSize = 14.sp)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(text = "Contact Us", color = VioletAccent, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(14.dp))
@@ -2147,22 +2215,61 @@ fun LiteBrowserDialog(
     var canGoForward by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
+    // Blackhood Theme Colors
+    val blackhoodBg = Color(0xFF000000) // Pure Black
+    val blackhoodHeaderBg = Color(0xFF080808) // Deepest charcoal
+    val blackhoodCardBg = Color(0xFF101010) // Darker gray for indicators
+
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),
-            color = BgColor
+            color = blackhoodBg
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
+                // Tier 1: Elegant branding header matching user requirements
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(CardColor)
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
+                        .background(blackhoodHeaderBg)
+                        .border(width = 0.5.dp, color = AmberAccent.copy(alpha = 0.3f))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Browser branding icon inside gold border
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(blackhoodCardBg, CircleShape)
+                            .border(1.dp, AmberAccent, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "🌐", fontSize = 18.sp)
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Premium Browser with Developer Tools",
+                            color = AmberAccent,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Google Extension Supported • Lite Version 1.02.0 Stable",
+                            color = TextDimColor,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
                     IconButton(
                         onClick = onDismiss,
                         modifier = Modifier.size(36.dp)
@@ -2170,42 +2277,84 @@ fun LiteBrowserDialog(
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close Browser",
-                            tint = TextColor
+                            tint = Color.White
                         )
                     }
+                }
 
+                // Tier 2: Premium functional controls
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(blackhoodHeaderBg)
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(
                         onClick = { webViewRef?.goBack() },
                         enabled = canGoBack,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Text(
                             text = "◀",
                             color = if (canGoBack) AmberAccent else TextDimColor,
-                            fontSize = 14.sp
+                            fontSize = 12.sp
                         )
                     }
 
                     IconButton(
                         onClick = { webViewRef?.goForward() },
                         enabled = canGoForward,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Text(
                             text = "▶",
                             color = if (canGoForward) AmberAccent else TextDimColor,
-                            fontSize = 14.sp
+                            fontSize = 12.sp
                         )
                     }
 
                     IconButton(
                         onClick = { webViewRef?.reload() },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Text(
                             text = "🔄",
                             color = AmberAccent,
-                            fontSize = 14.sp
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    // Workable DevTools Activator invoking real Eruda element inspector console
+                    IconButton(
+                        onClick = {
+                            webViewRef?.evaluateJavascript(
+                                """
+                                (function() {
+                                    if (window.eruda) {
+                                        eruda.show();
+                                    } else {
+                                        var script = document.createElement('script');
+                                        script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+                                        document.body.appendChild(script);
+                                        script.onload = function () {
+                                            eruda.init();
+                                            eruda.show();
+                                        };
+                                    }
+                                })();
+                                """.trimIndent(),
+                                null
+                            )
+                            Toast.makeText(context, "Developer Tools Console Connected successfully!", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier
+                            .size(32.dp)
+                            .border(0.5.dp, AmberAccent.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                    ) {
+                        Text(
+                            text = "🛠️",
+                            fontSize = 12.sp
                         )
                     }
 
@@ -2214,22 +2363,22 @@ fun LiteBrowserDialog(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .height(36.dp)
-                            .background(Card2Color, RoundedCornerShape(8.dp))
-                            .border(0.5.dp, AmberAccent.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp),
+                            .height(32.dp)
+                            .background(blackhoodCardBg, RoundedCornerShape(8.dp))
+                            .border(0.5.dp, AmberAccent.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 8.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
                             text = currentUrl.replace("https://", "").replace("http://", ""),
                             color = TextColor.copy(alpha = 0.8f),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     IconButton(
                         onClick = {
@@ -2248,23 +2397,23 @@ fun LiteBrowserDialog(
                                 webView.reload()
                             }
                         },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Text(
                             text = if (isDesktopMode) "📱" else "🖥️",
-                            fontSize = 16.sp
+                            fontSize = 14.sp
                         )
                     }
 
                     IconButton(
                         onClick = { openUrlWithChromeCustomTabs(context, currentUrl) },
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Open in External Tab",
                             tint = AmberAccent,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -2286,6 +2435,7 @@ fun LiteBrowserDialog(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
+                        .background(blackhoodBg)
                 ) {
                     AndroidView(
                         modifier = Modifier.fillMaxSize(),
