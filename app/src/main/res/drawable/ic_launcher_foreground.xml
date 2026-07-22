@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Glowing Cyber Hexagon Shield (Centered at 54, 54 - well inside safe zone) -->
+    <path
+        android:pathData="M 54,23 L 78,35 L 78,61 L 54,85 L 30,61 L 30,35 Z"
+        android:strokeWidth="1.5"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="30"
+                android:startY="35"
+                android:endX="78"
+                android:endY="85"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#3FF0FF" />
+                <item android:offset="0.5" android:color="#8B5CF6" />
+                <item android:offset="1.0" android:color="#D4AF37" />
+            </gradient>
+        </aapt:attr>
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="54"
+                android:startY="23"
+                android:endX="54"
+                android:endY="85"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#201A1035" />
+                <item android:offset="1.0" android:color="#4008070C" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Inner Core Bevel & Tech Accents -->
+    <path
+        android:pathData="M 54,27 L 74,37 L 74,59 L 54,81 L 34,59 L 34,37 Z"
+        android:strokeWidth="0.8"
+        android:strokeColor="#40E9D5FF" />
+
+    <!-- Stylized Metallic 'A' (Left side inside the shield) -->
+    <!-- Path is designed to look like a bold cyber futuristic letter 'A' -->
+    <path
+        android:pathData="M 41,65 L 41,43 L 49,43 L 49,65 M 41,53 L 49,53"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="41"
+                android:startY="43"
+                android:endX="49"
+                android:endY="65"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFF6D1" />
+                <item android:offset="1.0" android:color="#D4AF37" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Stylized Glowing 'I' (Right side inside the shield) -->
+    <!-- Futuristic 'I' with a disconnected glowing dot on top -->
+    <path
+        android:pathData="M 59,48 L 59,65"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="59"
+                android:startY="48"
+                android:endX="59"
+                android:endY="65"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#E0F7FA" />
+                <item android:offset="1.0" android:color="#3FF0FF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Glowing dot for 'I' -->
+    <path
+        android:pathData="M 59,42 A 1.8,1.8 0 1 1 58.9,42 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="57"
+                android:startY="40"
+                android:endX="61"
+                android:endY="44"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#FFF" />
+                <item android:offset="1.0" android:color="#3FF0FF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Tech circuit connections / nodes on bottom corners -->
+    <path
+        android:pathData="M 30,61 L 24,67 L 18,67"
+        android:strokeWidth="1.0"
+        android:strokeColor="#403FF0FF"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M 78,61 L 84,67 L 90,67"
+        android:strokeWidth="1.0"
+        android:strokeColor="#40D4AF37"
+        android:strokeLineCap="round" />
+
+    <path
+        android:pathData="M 18,67 A 1.5,1.5 0 1 1 17.9,67 Z"
+        android:fillColor="#3FF0FF" />
+
+    <path
+        android:pathData="M 90,67 A 1.5,1.5 0 1 1 89.9,67 Z"
+        android:fillColor="#D4AF37" />
+
+</vector>

@@ -2282,8 +2282,17 @@ fun LiteBrowserDialog(
                                     databaseEnabled = true
                                     allowFileAccess = true
                                     allowContentAccess = true
+                                    setSupportZoom(true)
+                                    builtInZoomControls = true
+                                    displayZoomControls = false
+                                    loadWithOverviewMode = true
+                                    useWideViewPort = true
+                                    cacheMode = android.webkit.WebSettings.LOAD_DEFAULT
                                     userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
                                 }
+                                isVerticalScrollBarEnabled = true
+                                isHorizontalScrollBarEnabled = false
+                                overScrollMode = android.view.View.OVER_SCROLL_IF_CONTENT_SCROLLS
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                                         url?.let { currentUrl = it }

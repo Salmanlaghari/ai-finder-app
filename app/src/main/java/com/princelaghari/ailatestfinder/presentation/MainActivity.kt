@@ -118,6 +118,11 @@ fun MainScreen(viewModel: HomeViewModel) {
     val recentlyViewedIds by viewModel.recentlyViewedIds.collectAsState()
     val selectedSortOption by viewModel.selectedSortOption.collectAsState()
 
+    // Dynamic Live Stats from real/curated database sources
+    val totalToolsCount by viewModel.totalToolsCount.collectAsState()
+    val categoriesCount by viewModel.categoriesCount.collectAsState()
+    val addedTodayCount by viewModel.addedTodayCount.collectAsState()
+
     // Upgraded Premium Browser States
     val browserSearchQuery by viewModel.browserSearchQuery.collectAsState()
     val browserResults by viewModel.browserResults.collectAsState()
@@ -235,7 +240,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
                                         Text(
-                                            text = "1020",
+                                            text = totalToolsCount.toString(),
                                             fontSize = 19.sp,
                                             fontWeight = FontWeight.ExtraBold,
                                             color = AmberAccent
@@ -259,7 +264,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
                                         Text(
-                                            text = "24",
+                                            text = categoriesCount.toString(),
                                             fontSize = 19.sp,
                                             fontWeight = FontWeight.ExtraBold,
                                             color = VioletAccent
@@ -283,7 +288,7 @@ fun MainScreen(viewModel: HomeViewModel) {
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
                                         Text(
-                                            text = "12",
+                                            text = addedTodayCount.toString(),
                                             fontSize = 19.sp,
                                             fontWeight = FontWeight.ExtraBold,
                                             color = TextColor

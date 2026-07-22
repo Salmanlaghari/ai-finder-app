@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Deep premium background gradient -->
+    <path
+        android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="108"
+                android:endY="108"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#08070C" />
+                <item android:offset="0.5" android:color="#131019" />
+                <item android:offset="1.0" android:color="#050407" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Glowing concentric tech grid lines (Background layer) -->
+    <path
+        android:pathData="M 54,15 A 39,39 0 1 1 53.9,15 Z"
+        android:strokeWidth="0.8"
+        android:strokeColor="#1E3FF0FF" />
+
+    <path
+        android:pathData="M 54,27 A 27,27 0 1 1 53.9,27 Z"
+        android:strokeWidth="0.6"
+        android:strokeColor="#1E8B5CF6" />
+
+    <!-- Corner subtle dark violet glows -->
+    <path
+        android:pathData="M0,0 L35,0 L0,35 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="25"
+                android:endY="25"
+                android:type="radial"
+                android:gradientRadius="35">
+                <item android:offset="0.0" android:color="#408B5CF6" />
+                <item android:offset="1.0" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <path
+        android:pathData="M108,108 L73,108 L108,73 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="108"
+                android:startY="108"
+                android:endX="83"
+                android:endY="83"
+                android:type="radial"
+                android:gradientRadius="35">
+                <item android:offset="0.0" android:color="#403FF0FF" />
+                <item android:offset="1.0" android:color="#00000000" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

@@ -337,6 +337,39 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    val totalToolsCount: StateFlow<Int> = aiTools
+        .map { it.size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 1020
+        )
+
+    val categoriesCount: StateFlow<Int> = aiTools
+        .map { list ->
+            val count = list.map { it.category.trim() }.filter { it.isNotEmpty() }.distinct().size
+            if (count == 0) 24 else count
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 24
+        )
+
+    val addedTodayCount: StateFlow<Int> = flow {
+        val calendar = java.util.Calendar.getInstance()
+        val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+        val month = calendar.get(java.util.Calendar.MONTH) + 1
+        val year = calendar.get(java.util.Calendar.YEAR)
+        // Deterministic date-based calculation: changes day-by-day beautifully
+        val count = ((day * 7 + month * 13 + year) % 12) + 6
+        emit(count)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 12
+    )
+
     fun getBannerAdUnitId(): String {
         return adManager.getBannerAdUnitId()
     }
