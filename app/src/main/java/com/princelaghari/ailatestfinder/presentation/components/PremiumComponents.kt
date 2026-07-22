@@ -1711,7 +1711,7 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
 
     // Dynamically trust the exact Ad Unit ID programmatically loaded from strings.xml
     val finalAdUnitId = remember(adUnitId) {
-        adUnitId.ifEmpty { "ca-app-pub-3940256099942544/6300978111" }
+        adUnitId.ifEmpty { "ca-app-pub-8178045957849630/1752932881" }
     }
 
     if (hasError) {
@@ -1745,6 +1745,21 @@ fun AdBanner(adUnitId: String, modifier: Modifier = Modifier) {
                         AdView(ctx).apply {
                             setAdSize(AdSize.BANNER)
                             this.adUnitId = finalAdUnitId
+                            adListener = object : com.google.android.gms.ads.AdListener() {
+                                override fun onAdLoaded() {
+                                    android.util.Log.d("AdBanner", "Banner ad loaded successfully.")
+                                }
+
+                                override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
+                                    android.util.Log.e("AdBanner", "================ BANNER AD LOAD FAILURE ==================")
+                                    android.util.Log.e("AdBanner", "Banner Ad failed to load!")
+                                    android.util.Log.e("AdBanner", "Error Code: ${error.code}")
+                                    android.util.Log.e("AdBanner", "Error Message: ${error.message}")
+                                    android.util.Log.e("AdBanner", "Error Domain: ${error.domain}")
+                                    android.util.Log.e("AdBanner", "Response Info: ${error.responseInfo}")
+                                    android.util.Log.e("AdBanner", "==========================================================")
+                                }
+                            }
                             loadAd(AdRequest.Builder().build())
                         }
                     } catch (e: Exception) {

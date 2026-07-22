@@ -1,7 +1,6 @@
 package com.princelaghari.ailatestfinder.presentation.ads
 
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.util.Log
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
@@ -24,20 +23,15 @@ class AdManager @Inject constructor() {
     private val TAG = "AdManager"
     private val isInitialized = AtomicBoolean(false)
 
-    // Google AdMob Standard Test Ad Unit IDs (Guaranteed to fill and load in Debug/Testing environment)
-    private val TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111"
-    private val TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712"
-    private val TEST_REWARDED_ID = "ca-app-pub-3940256099942544/5224354917"
-
-    // Fallback real Production IDs if resources fail to fetch in Release profile
+    // Hardcoded production fallback IDs (Used only if strings.xml fails to resolve)
     private var bannerId: String = "ca-app-pub-8178045957849630/1752932881"
     private var interstitialId: String = "ca-app-pub-8178045957849630/5137075902"
     private var rewardedId: String = "ca-app-pub-8178045957849630/8992414643"
 
     // Active working unit IDs (determined at initialization)
-    private var activeBannerId: String = TEST_BANNER_ID
-    private var activeInterstitialId: String = TEST_INTERSTITIAL_ID
-    private var activeRewardedId: String = TEST_REWARDED_ID
+    private var activeBannerId: String = bannerId
+    private var activeInterstitialId: String = interstitialId
+    private var activeRewardedId: String = rewardedId
 
     // Preloaded Ad references
     private var preloadedInterstitialAd: InterstitialAd? = null
@@ -57,47 +51,41 @@ class AdManager @Inject constructor() {
      */
     fun initialize(context: Context) {
         val appContext = context.applicationContext
-        val isDebuggable = (appContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
-        if (isDebuggable) {
-            // Debug Build: Bind Google Test Ad Unit IDs to guarantee 100% fill rate and safe testing
-            activeBannerId = TEST_BANNER_ID
-            activeInterstitialId = TEST_INTERSTITIAL_ID
-            activeRewardedId = TEST_REWARDED_ID
-            Log.d(TAG, "AdManager: DEBUG MODE ACTIVE. Loading official Google Test Ad Unit IDs.")
-        } else {
-            // Release Build: Load verified production Ad Unit IDs directly from strings.xml
-            try {
-                val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
-                if (bId.isNotEmpty()) {
-                    bannerId = bId
-                }
-                val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
-                if (iId.isNotEmpty()) {
-                    interstitialId = iId
-                }
-                val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
-                if (rId.isNotEmpty()) {
-                    rewardedId = rId
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to resolve production Ad Unit IDs from strings.xml", e)
+        // EXCLUSIVELY Load verified production Ad Unit IDs directly from strings.xml in both debug & release
+        try {
+            val bId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_banner_id)
+            if (bId.isNotEmpty()) {
+                bannerId = bId
             }
-            activeBannerId = bannerId
-            activeInterstitialId = interstitialId
-            activeRewardedId = rewardedId
-            Log.d(TAG, "AdManager: RELEASE MODE ACTIVE. Loaded Production Ad Unit IDs.")
+            val iId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_interstitial_id)
+            if (iId.isNotEmpty()) {
+                interstitialId = iId
+            }
+            val rId = appContext.getString(com.princelaghari.ailatestfinder.R.string.admob_rewarded_id)
+            if (rId.isNotEmpty()) {
+                rewardedId = rId
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "AdManager: Failed to resolve production Ad Unit IDs from strings.xml, using hardcoded fallbacks", e)
         }
 
+        activeBannerId = bannerId
+        activeInterstitialId = interstitialId
+        activeRewardedId = rewardedId
+
+        Log.d(TAG, "====================================================")
+        Log.d(TAG, "AdManager: INITIALIZED WITH PRODUCTION AD CONFIGURATION")
         Log.d(TAG, "AdManager: Active Banner Unit: $activeBannerId")
         Log.d(TAG, "AdManager: Active Interstitial Unit: $activeInterstitialId")
         Log.d(TAG, "AdManager: Active Rewarded Unit: $activeRewardedId")
+        Log.d(TAG, "====================================================")
 
         if (isInitialized.compareAndSet(false, true)) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    MobileAds.initialize(context) {
-                        Log.d(TAG, "AdMob SDK Initialized Successfully.")
+                    MobileAds.initialize(context) { status ->
+                        Log.d(TAG, "AdMob SDK Initialized Successfully. Map: ${status.adapterStatusMap}")
                         preloadInterstitial(context)
                         preloadRewarded(context)
                     }
@@ -126,6 +114,7 @@ class AdManager @Inject constructor() {
         val adRequest = AdRequest.Builder().build()
 
         try {
+            Log.d(TAG, "Interstitial Ad: Requesting load on $activeInterstitialId")
             InterstitialAd.load(
                 context.applicationContext,
                 activeInterstitialId,
@@ -139,7 +128,14 @@ class AdManager @Inject constructor() {
                     }
 
                     override fun onAdFailedToLoad(error: LoadAdError) {
-                        Log.w(TAG, "Interstitial Ad failed to load: ${error.message}")
+                        Log.e(TAG, "================ AD LOAD FAILURE ==================")
+                        Log.e(TAG, "Interstitial Ad failed to load!")
+                        Log.e(TAG, "Error Code: ${error.code} (e.g. 3 = NO_FILL, 2 = NETWORK_ERROR)")
+                        Log.e(TAG, "Error Message: ${error.message}")
+                        Log.e(TAG, "Error Domain: ${error.domain}")
+                        Log.e(TAG, "Response Info: ${error.responseInfo}")
+                        Log.e(TAG, "===================================================")
+
                         preloadedInterstitialAd = null
                         isInterstitialLoading.set(false)
 
@@ -173,6 +169,7 @@ class AdManager @Inject constructor() {
         val adRequest = AdRequest.Builder().build()
 
         try {
+            Log.d(TAG, "Rewarded Ad: Requesting load on $activeRewardedId")
             RewardedAd.load(
                 context.applicationContext,
                 activeRewardedId,
@@ -186,7 +183,14 @@ class AdManager @Inject constructor() {
                     }
 
                     override fun onAdFailedToLoad(error: LoadAdError) {
-                        Log.w(TAG, "Rewarded Ad failed to load: ${error.message}")
+                        Log.e(TAG, "================ AD LOAD FAILURE ==================")
+                        Log.e(TAG, "Rewarded Ad failed to load!")
+                        Log.e(TAG, "Error Code: ${error.code} (e.g. 3 = NO_FILL, 2 = NETWORK_ERROR)")
+                        Log.e(TAG, "Error Message: ${error.message}")
+                        Log.e(TAG, "Error Domain: ${error.domain}")
+                        Log.e(TAG, "Response Info: ${error.responseInfo}")
+                        Log.e(TAG, "===================================================")
+
                         preloadedRewardedAd = null
                         isRewardedLoading.set(false)
 
