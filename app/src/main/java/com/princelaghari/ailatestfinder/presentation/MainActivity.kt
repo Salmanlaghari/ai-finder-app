@@ -205,20 +205,41 @@ fun MainScreen(viewModel: HomeViewModel) {
                                         letterSpacing = 0.5.sp
                                     )
                                 }
-                                // Bell Button to open About Info Panel
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(RoundedCornerShape(14.dp))
-                                        .background(CardColor)
-                                        .border(1.dp, Card2Color, RoundedCornerShape(14.dp))
-                                        .clickable { showAbout = true },
-                                    contentAlignment = Alignment.Center
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(
-                                        text = "🔔",
-                                        fontSize = 16.sp
-                                    )
+                                    // Quick-launch Live Web Browser Shortcut Button
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(CardColor)
+                                            .border(1.dp, AmberAccent.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+                                            .clickable { activeViewMode = "Browser" },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "🌐",
+                                            fontSize = 16.sp
+                                        )
+                                    }
+
+                                    // Bell Button to open About Info Panel
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(CardColor)
+                                            .border(1.dp, Card2Color, RoundedCornerShape(14.dp))
+                                            .clickable { showAbout = true },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "🔔",
+                                            fontSize = 16.sp
+                                        )
+                                    }
                                 }
                             }
 

@@ -120,7 +120,7 @@ object MockDataSource {
         }
 
         val pricingOptions = listOf("Free", "Freemium", "Paid", "API")
-        val statusOptions = listOf("Trending", "Popular", "New", "Verified")
+        val statusOptions = listOf("Trending", "Popular", "New", "Verified", "Offline")
         val platformPresets = listOf(
             listOf("Web"),
             listOf("Web", "API"),

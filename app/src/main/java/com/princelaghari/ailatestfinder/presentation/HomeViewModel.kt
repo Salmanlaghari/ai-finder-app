@@ -337,15 +337,24 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    val totalToolsCount: StateFlow<Int> = aiTools
-        .map { it.size }
+    // Unfiltered, fully synchronized master flow of all AI Tools in the database
+    val allTools: StateFlow<List<AiTool>> = getAiToolsUseCase(query = "", category = "All")
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = emptyList()
+        )
+
+    val totalToolsCount: StateFlow<Int> = allTools
+        .map { list -> if (list.isEmpty()) 1020 else list.size }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = 1020
         )
 
-    val categoriesCount: StateFlow<Int> = aiTools
+    val categoriesCount: StateFlow<Int> = allTools
         .map { list ->
             val count = list.map { it.category.trim() }.filter { it.isNotEmpty() }.distinct().size
             if (count == 0) 24 else count

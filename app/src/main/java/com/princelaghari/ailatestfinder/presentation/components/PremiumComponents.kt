@@ -1640,17 +1640,32 @@ fun AiToolCard(
                         modifier = Modifier.weight(1f)
                     )
 
-                    Box(
-                        modifier = Modifier
-                            .background(AmberAccent.copy(alpha = 0.14f), RoundedCornerShape(10.dp))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = tool.category,
-                            color = AmberAccent,
-                            fontSize = 9.5.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                    if (tool.status.equals("offline", ignoreCase = true)) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFE53935), RoundedCornerShape(10.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "OFFLINE 🔴",
+                                color = Color.White,
+                                fontSize = 9.5.sp,
+                                fontWeight = FontWeight.Black
+                            )
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .background(AmberAccent.copy(alpha = 0.14f), RoundedCornerShape(10.dp))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = tool.category,
+                                color = AmberAccent,
+                                fontSize = 9.5.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
 
