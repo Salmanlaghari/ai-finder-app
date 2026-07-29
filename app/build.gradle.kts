@@ -49,9 +49,9 @@ android {
                 val keystoreFile = rootProject.file("temp-keystore.jks")
                 if (keystoreFile.exists()) {
                     storeFile = keystoreFile
-                    storePassword = "password123"
+                    storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "password123"
                     keyAlias = "premiumalias"
-                    keyPassword = "password123"
+                    keyPassword = System.getenv("KEY_PASSWORD") ?: "password123"
                 }
             }
         }

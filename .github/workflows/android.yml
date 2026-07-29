@@ -29,6 +29,9 @@ jobs:
       run: chmod +x gradlew
 
     - name: Generate Release Keystore
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
         keytool -genkey -v \
           -keystore temp-keystore.jks \
@@ -36,9 +39,9 @@ jobs:
           -keyalg RSA \
           -keysize 2048 \
           -validity 10000 \
-          -storepass password123 \
-          -keypass password123 \
-          -dname "CN=Prince Laghari, OU=Mobile, O=Ai Latest Finder, L=Islamabad, S=Federal, C=PK"
+          -storepass "$KEYSTORE_PASSWORD" \
+          -keypass "$KEY_PASSWORD" \
+          -dname "CN=PrinceLaghari, OU=Mobile, O=AiLatestFinder, L=Islamabad, S=Federal, C=PK"
 
     - name: Build Release APK & AAB
       run: ./gradlew assembleRelease bundleRelease --no-daemon --parallel
