@@ -33,14 +33,17 @@ jobs:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
+        # Fallback to default passwords if secrets are empty
+        ST_PASS="${KEYSTORE_PASSWORD:-password123}"
+        KEY_PASS="${KEY_PASSWORD:-password123}"
         keytool -genkey -v \
           -keystore temp-keystore.jks \
           -alias premiumalias \
           -keyalg RSA \
           -keysize 2048 \
           -validity 10000 \
-          -storepass "$KEYSTORE_PASSWORD" \
-          -keypass "$KEY_PASSWORD" \
+          -storepass "$ST_PASS" \
+          -keypass "$KEY_PASS" \
           -dname "CN=PrinceLaghari, OU=Mobile, O=AiLatestFinder, L=Islamabad, S=Federal, C=PK"
 
     - name: Build Release APK & AAB
