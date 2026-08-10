@@ -306,6 +306,33 @@ object MockDataSource {
             alternatives = listOf("Midjourney", "Stable Diffusion")
         ),
         AiTool(
+            id = "flux1", name = "Flux.1 (Black Forest Labs)", category = "Image AI",
+            description = "Next-generation open-weights image model suite with exceptional prompt adherence, photorealism, and high-quality typography rendering.",
+            imageUrl = LOGO_MIDJOURNEY,
+            toolUrl = "https://blackforestlabs.ai", pricing = "Free", platforms = listOf("Web", "Local PC", "API"),
+            developer = "Black Forest Labs", company = "Black Forest Labs", status = "Trending", launchYear = "2024",
+            tags = listOf("image generator", "flux", "open source art", "sd", "photorealistic"),
+            alternatives = listOf("Midjourney", "Stable Diffusion")
+        ),
+        AiTool(
+            id = "imagen3", name = "Imagen 3 (Google)", category = "Image AI",
+            description = "Google's highest quality text-to-image generator, delivering incredible details, vibrant colors, and exceptional text and logo rendering inside generated scenes.",
+            imageUrl = LOGO_GOOGLE,
+            toolUrl = "https://deepmind.google/technologies/imagen-3", pricing = "Freemium", platforms = listOf("Web", "API"),
+            developer = "Google DeepMind", company = "Google", status = "Trending", launchYear = "2024",
+            tags = listOf("google ai", "image generator", "imagen", "photorealistic"),
+            alternatives = listOf("DALL-E 3", "Midjourney")
+        ),
+        AiTool(
+            id = "kling-image", name = "Kling AI Image", category = "Image AI",
+            description = "Advanced Asian text-to-image generator with superior composition, artistic styles, and cinematic perspective filters.",
+            imageUrl = LOGO_MIDJOURNEY,
+            toolUrl = "https://klingai.com", pricing = "Freemium", platforms = listOf("Web"),
+            developer = "Kuaishou Team", company = "Kuaishou", status = "New", launchYear = "2024",
+            tags = listOf("image generator", "kling", "art generator", "cinematic"),
+            alternatives = listOf("Midjourney", "DALL-E 3")
+        ),
+        AiTool(
             id = "ideogram", name = "Ideogram 2.0", category = "Image AI",
             description = "Graphic design image generator specialized in perfect typography, text rendering, letter spacing, and logo integration within illustrative images.",
             imageUrl = LOGO_MIDJOURNEY,
@@ -367,6 +394,33 @@ object MockDataSource {
             developer = "Luma Labs", company = "Luma Labs", status = "New", launchYear = "2024",
             tags = listOf("video generator", "3d motion", "animation", "luma", "dream machine"),
             alternatives = listOf("OpenAI Sora", "Runway Gen-3")
+        ),
+        AiTool(
+            id = "kling-video", name = "Kling Video AI", category = "Video AI",
+            description = "Highly advanced cinematic video model capable of generating high-definition video clips with realistic physical simulations and grand compositions.",
+            imageUrl = LOGO_RUNWAY,
+            toolUrl = "https://klingai.com", pricing = "Freemium", platforms = listOf("Web"),
+            developer = "Kuaishou Team", company = "Kuaishou", status = "Trending", launchYear = "2024",
+            tags = listOf("video generator", "kling", "motion", "cinematic"),
+            alternatives = listOf("OpenAI Sora", "Runway Gen-3")
+        ),
+        AiTool(
+            id = "minimax-video", name = "MiniMax Video (Hailuo AI)", category = "Video AI",
+            description = "Top-tier AI video generator recognized for extreme fluid character animations, complex hand gestures, and expressive human emotions.",
+            imageUrl = LOGO_RUNWAY,
+            toolUrl = "https://hailuoai.com/video", pricing = "Freemium", platforms = listOf("Web"),
+            developer = "MiniMax Team", company = "MiniMax", status = "Trending", launchYear = "2024",
+            tags = listOf("video generator", "hailuo", "fluid animation", "minimax"),
+            alternatives = listOf("OpenAI Sora", "Luma Dream Machine")
+        ),
+        AiTool(
+            id = "mochi1-video", name = "Mochi 1 (Genmo)", category = "Video AI",
+            description = "Highly capable open-source text-to-video model providing outstanding prompt adherence, physical simulation accuracy, and camera movement controls.",
+            imageUrl = LOGO_HUGGINGFACE,
+            toolUrl = "https://genmo.ai", pricing = "Free", platforms = listOf("Web", "Local PC"),
+            developer = "Genmo Lab", company = "Genmo", status = "New", launchYear = "2024",
+            tags = listOf("open source video", "mochi", "genmo", "physics model"),
+            alternatives = listOf("Runway Gen-3", "Luma Dream Machine")
         ),
         AiTool(
             id = "google-veo", name = "Google Veo", category = "Video AI",
@@ -475,6 +529,60 @@ object MockDataSource {
             developer = "Cognition Team", company = "Cognition Labs", status = "Trending", launchYear = "2024",
             tags = listOf("agent", "autonomous coder", "devin", "software engineer"),
             alternatives = listOf("AutoGPT", "Cursor AI")
+        ),
+        AiTool(
+            id = "crewai", name = "CrewAI", category = "Agents",
+            description = "Sleek framework for orchestrating role-playing autonomous AI agents, enabling complex multi-agent cooperation to automate workflows.",
+            imageUrl = LOGO_GITHUB,
+            toolUrl = "https://crewai.com", pricing = "Free", platforms = listOf("Web", "Python Library"),
+            developer = "CrewAI Team", company = "CrewAI Inc.", status = "Trending", launchYear = "2023",
+            tags = listOf("agent", "multi-agent", "crewai", "orchestrator", "autonomous"),
+            alternatives = listOf("Microsoft AutoGen", "AutoGPT")
+        ),
+        AiTool(
+            id = "autogen", name = "Microsoft AutoGen", category = "Agents",
+            description = "Open-source framework that enables development of LLM applications using multiple interacting agents that can talk to each other and execute tasks.",
+            imageUrl = LOGO_COPILOT,
+            toolUrl = "https://microsoft.github.io/autogen", pricing = "Free", platforms = listOf("Python", "C#"),
+            developer = "Microsoft Research", company = "Microsoft", status = "Popular", launchYear = "2023",
+            tags = listOf("agent", "multi-agent", "autogen", "microsoft", "autonomous"),
+            alternatives = listOf("CrewAI", "AutoGPT")
+        ),
+        AiTool(
+            id = "babyagi", name = "BabyAGI", category = "Agents",
+            description = "A lightweight task-driven autonomous agent built in Python that plans, prioritizes, and executes tasks recursively to meet high-level objectives.",
+            imageUrl = LOGO_GITHUB,
+            toolUrl = "https://github.com/yoheinakajima/babyagi", pricing = "Free", platforms = listOf("Local PC", "Python"),
+            developer = "Yohei Nakajima", company = "Open Source Team", status = "Popular", launchYear = "2023",
+            tags = listOf("agent", "babyagi", "autonomous", "task solver"),
+            alternatives = listOf("AutoGPT", "Devin")
+        ),
+        AiTool(
+            id = "rabbit-r1", name = "Rabbit R1 (LAM)", category = "Agents",
+            description = "Pocket hardware device powered by a Large Action Model (LAM) designed to interact directly with mobile apps, book rides, and purchase items.",
+            imageUrl = LOGO_SUNO,
+            toolUrl = "https://rabbit.tech", pricing = "Paid", platforms = listOf("Hardware", "Web Portal"),
+            developer = "Rabbit Inc.", company = "Rabbit", status = "New", launchYear = "2024",
+            tags = listOf("agent", "hardware", "large action model", "rabbit", "lam"),
+            alternatives = listOf("MultiOn")
+        ),
+        AiTool(
+            id = "multion", name = "MultiOn", category = "Agents",
+            description = "An autonomous personal web browser-agent that can automatically navigate pages, log in, fill forms, purchase goods, and book flights.",
+            imageUrl = LOGO_GITHUB,
+            toolUrl = "https://multion.ai", pricing = "Freemium", platforms = listOf("Web", "Chrome Extension", "API"),
+            developer = "MultiOn Lab", company = "MultiOn Inc.", status = "Trending", launchYear = "2024",
+            tags = listOf("agent", "browser agent", "web automated", "multion"),
+            alternatives = listOf("Rabbit R1")
+        ),
+        AiTool(
+            id = "chatdev", name = "ChatDev", category = "Agents",
+            description = "Virtual software development team where multiple autonomous agents assume roles of CEO, CTO, programmer, and tester to design complete software packages.",
+            imageUrl = LOGO_GITHUB,
+            toolUrl = "https://github.com/OpenBMB/ChatDev", pricing = "Free", platforms = listOf("Web", "Local Terminal"),
+            developer = "OpenBMB Team", company = "Tsinghua University", status = "Popular", launchYear = "2023",
+            tags = listOf("agent", "multi-agent team", "software house", "chatdev"),
+            alternatives = listOf("Devin", "AutoGPT")
         ),
         AiTool(
             id = "chatpdf", name = "ChatPDF", category = "PDF",

@@ -172,6 +172,9 @@ fun MainScreen(viewModel: HomeViewModel) {
                 .fillMaxSize()
                 .padding(bottom = 80.dp) // Leave exact space for floating navigation bar
         ) {
+            // Sticky AdBanner at the very top of the screen
+            AdBanner(adUnitId = viewModel.getBannerAdUnitId())
+
             when (activeViewMode) {
                 "Home" -> {
                     // Check if user clicked See All, category chips, or typed a query to show Full List explorer
@@ -1274,22 +1277,22 @@ fun MainScreen(viewModel: HomeViewModel) {
             }
         }
 
-        // Sticky AdBanner integration directly layered
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-        ) {
-            AdBanner(adUnitId = viewModel.getBannerAdUnitId())
-        }
-
         // Overlay dialogs
         selectedToolForDetail?.let { tool ->
             AiDetailOverlay(
                 tool = tool,
                 isFavorite = favoriteIds.contains(tool.id),
                 onToggleFavorite = { viewModel.toggleFavorite(tool.id) },
-                onOpenUrl = { url -> activeBrowserUrl = url },
+                onOpenUrl = { url ->
+                    val activity = context as? android.app.Activity
+                    if (activity != null) {
+                        viewModel.showInterstitial(activity) {
+                            activeBrowserUrl = url
+                        }
+                    } else {
+                        activeBrowserUrl = url
+                    }
+                },
                 onDismiss = { selectedToolForDetail = null }
             )
         }

@@ -1,5 +1,6 @@
 package com.princelaghari.ailatestfinder.presentation.ads
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import com.google.android.gms.ads.AdRequest
@@ -220,6 +221,37 @@ class AdManager @Inject constructor() {
         val ad = preloadedInterstitialAd
         preloadedInterstitialAd = null
         return ad
+    }
+
+    /**
+     * Safely displays a preloaded Interstitial Ad on the provided Activity.
+     * Triggers preloading of the next Interstitial Ad immediately after presentation or failure.
+     */
+    fun showInterstitial(activity: Activity, onAdDismissed: () -> Unit = {}) {
+        activity.runOnUiThread {
+            val ad = getAndClearInterstitial()
+            if (ad != null) {
+                ad.fullScreenContentCallback = object : com.google.android.gms.ads.FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        Log.d(TAG, "Interstitial Ad Dismissed.")
+                        onAdDismissed()
+                        preloadInterstitial(activity)
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(error: com.google.android.gms.ads.AdError) {
+                        Log.e(TAG, "Interstitial Ad failed to show: ${error.message}")
+                        onAdDismissed()
+                        preloadInterstitial(activity)
+                    }
+                }
+                Log.d(TAG, "Showing Interstitial Ad.")
+                ad.show(activity)
+            } else {
+                Log.d(TAG, "No Interstitial Ad preloaded. Invoking callback directly.")
+                onAdDismissed()
+                preloadInterstitial(activity)
+            }
+        }
     }
 
     /**
