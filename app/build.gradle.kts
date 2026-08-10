@@ -48,10 +48,12 @@ android {
                 // Fallback for automated environment pipelines (like GHA)
                 val keystoreFile = rootProject.file("temp-keystore.jks")
                 if (keystoreFile.exists()) {
+                    val stPass = System.getenv("KEYSTORE_PASSWORD")?.takeIf { it.isNotEmpty() } ?: "password123"
+                    val keyPass = System.getenv("KEY_PASSWORD")?.takeIf { it.isNotEmpty() } ?: stPass
                     storeFile = keystoreFile
-                    storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "password123"
+                    storePassword = stPass
                     keyAlias = "premiumalias"
-                    keyPassword = System.getenv("KEY_PASSWORD") ?: "password123"
+                    keyPassword = keyPass
                 }
             }
         }

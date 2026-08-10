@@ -33,9 +33,9 @@ jobs:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
-        # Fallback to default passwords if secrets are empty
+        # Fallback to default passwords if secrets are empty. Must be identical for PKCS12
         ST_PASS="${KEYSTORE_PASSWORD:-password123}"
-        KEY_PASS="${KEY_PASSWORD:-password123}"
+        KEY_PASS="${KEY_PASSWORD:-$ST_PASS}"
         keytool -genkey -v \
           -keystore temp-keystore.jks \
           -alias premiumalias \
@@ -47,6 +47,9 @@ jobs:
           -dname "CN=PrinceLaghari, OU=Mobile, O=AiLatestFinder, L=Islamabad, S=Federal, C=PK"
 
     - name: Build Release APK & AAB
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease bundleRelease --no-daemon --parallel
 
     - name: Upload Release APK
