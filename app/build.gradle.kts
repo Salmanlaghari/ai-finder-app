@@ -16,8 +16,8 @@ android {
         applicationId = "com.princelaghari.ailatestfinder"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "v1.07.0"
+        versionCode = 16
+        versionName = "v1.16.0"
         multiDexEnabled = true
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

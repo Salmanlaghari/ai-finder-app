@@ -383,6 +383,10 @@ class HomeViewModel @Inject constructor(
         return adManager.getBannerAdUnitId()
     }
 
+    fun showInterstitial(activity: android.app.Activity, onAdDismissed: () -> Unit) {
+        adManager.showInterstitial(activity, onAdDismissed)
+    }
+
     private fun isCurrentlyConnected(): Boolean {
         val manager = connectivityManager ?: return true
         val activeNetwork = manager.activeNetwork ?: return false
